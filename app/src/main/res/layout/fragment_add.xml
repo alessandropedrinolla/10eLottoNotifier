@@ -10,6 +10,15 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="@string/game_date"/>
+    <EditText
+        android:id="@+id/game_date"
+        android:layout_width="fill_parent"
+        android:layout_height="wrap_content"
+        android:inputType="date" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:text="@string/game_id"/>
     <NumberPicker
         android:id="@+id/game_id"

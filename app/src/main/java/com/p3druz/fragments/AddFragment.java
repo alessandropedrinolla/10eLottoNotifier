@@ -1,9 +1,9 @@
 package com.p3druz.fragments;
 
+import android.app.DatePickerDialog;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.preference.PreferenceManager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,35 +11,29 @@ import android.widget.EditText;
 import android.widget.ListView;
 import android.widget.NumberPicker;
 import android.widget.SimpleAdapter;
-import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.Observer;
-import androidx.lifecycle.ViewModelProviders;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.p3druz.R;
 import com.p3druz.models.Game;
-import com.p3druz.models.PageViewModel;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
 public class AddFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
+    private final String ITALIAN_DATE_FORMAT = "dd/MM/YYYY";
 
+    private EditText mDateEditText;
     private NumberPicker mGameId;
     private EditText mGameNumbers;
     private SimpleAdapter mAdapter;
@@ -50,13 +44,6 @@ public class AddFragment extends Fragment {
         super.onCreate(savedInstanceState);
 
         mFields = new ArrayList<>();
-
-        PageViewModel pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
-        int index = 1;
-        if (getArguments() != null) {
-            index = getArguments().getInt(ARG_SECTION_NUMBER);
-        }
-        pageViewModel.setIndex(index);
     }
 
     @Override
@@ -65,6 +52,26 @@ public class AddFragment extends Fragment {
             Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_add, container, false);
 
+        final Calendar myCalendar = Calendar.getInstance();
+
+        mDateEditText = inflatedView.findViewById(R.id.game_date);
+        DatePickerDialog.OnDateSetListener date = (view, year, monthOfYear, dayOfMonth) -> {
+            myCalendar.set(Calendar.YEAR, year);
+            myCalendar.set(Calendar.MONTH, monthOfYear);
+            myCalendar.set(Calendar.DAY_OF_MONTH, dayOfMonth);
+
+            String myFormat = ITALIAN_DATE_FORMAT;
+            SimpleDateFormat sdf = new SimpleDateFormat(myFormat, Locale.getDefault());
+
+            mDateEditText.setText(sdf.format(myCalendar.getTime()));
+        };
+
+        mDateEditText.setOnClickListener(v -> {
+            new DatePickerDialog(getContext(), date, myCalendar
+                    .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
+                    myCalendar.get(Calendar.DAY_OF_MONTH)).show();
+        });
+
         mGameId = inflatedView.findViewById(R.id.game_id);
         setUpNumberPicker();
         mGameNumbers = inflatedView.findViewById(R.id.game_numbers);
@@ -72,19 +79,9 @@ public class AddFragment extends Fragment {
         mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameId", "gameNumbers"}, new int[]{R.id.game_id_field, R.id.game_numbers_field});
         ((ListView)inflatedView.findViewById(R.id.list_view)).setAdapter(mAdapter);
 
-        inflatedView.findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onAddButtonClick();
-            }
-        });
+        inflatedView.findViewById(R.id.add_button).setOnClickListener(v -> onAddButtonClick());
 
-        inflatedView.findViewById(R.id.save_button).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                onSaveButtonClick();
-            }
-        });
+        inflatedView.findViewById(R.id.save_button).setOnClickListener(v -> onSaveButtonClick());
 
         return inflatedView;
     }
@@ -113,9 +110,10 @@ public class AddFragment extends Fragment {
         }
 
         HashMap<String, String> mRow = new HashMap<>();
-        mRow.put(Game.fields[0], String.valueOf(mGameId.getValue()));
-        mRow.put(Game.fields[1], gameNumbersStr);
-        mRow.put(Game.fields[2], "not set");
+        mRow.put(Game.FIELDS[0], Game.dateToGameFormat(String.valueOf(mDateEditText.getText())));
+        mRow.put(Game.FIELDS[1], String.valueOf(mGameId.getValue()));
+        mRow.put(Game.FIELDS[2], gameNumbersStr);
+        mRow.put(Game.FIELDS[3], "-1");
         mFields.add(mRow);
         mAdapter.notifyDataSetChanged();
 
@@ -125,12 +123,12 @@ public class AddFragment extends Fragment {
 
     private void onSaveButtonClick() {
         if(mFields.size() == 0) return;
-
+        // TODO or not TODO save game object as object instead of json
         JsonArray jsonArray = new JsonArray();
 
         for(HashMap<String,String> row : mFields) {
             JsonObject jsonObj = new JsonObject();
-            for(String field : Game.fields)
+            for(String field : Game.FIELDS)
                 jsonObj.addProperty(field, row.get(field));
             jsonArray.add(jsonObj);
         }
