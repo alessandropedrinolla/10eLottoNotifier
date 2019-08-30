@@ -28,9 +28,9 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
         // getItem is called to instantiate the fragment for the given page.
         // Return a ResultFragment (defined as a static inner class below).
         if(position == 0)
-            return AddFragment.newInstance(0);
+            return new AddFragment();
         else
-            return ResultFragment.newInstance(1);
+            return new ResultFragment();
     }
 
     @Nullable

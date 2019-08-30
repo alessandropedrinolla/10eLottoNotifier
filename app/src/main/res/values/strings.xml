@@ -4,6 +4,9 @@
     <string name="tab_text_2" translatable="false">Risultati</string>
     <string name="game_id">Numero giocata:</string>
     <string name="game_numbers">Numeri giocati</string>
+    <string name="insert_game_numbers">Inserire numeri giocati (separati da uno spazio):</string>
     <string name="add">Aggiungi</string>
     <string name="save">Salva</string>
+    <string name="refresh_list">Aggiorna lista</string>
+    <string name="check_list">Controlla lista</string>
 </resources>

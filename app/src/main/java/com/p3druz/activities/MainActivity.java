@@ -1,4 +1,4 @@
-package com.p3druz;
+package com.p3druz.activities;
 
 import android.os.Bundle;
 
@@ -11,6 +11,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import android.view.View;
 
+import com.p3druz.R;
 import com.p3druz.utils.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {

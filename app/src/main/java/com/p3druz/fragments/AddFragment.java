@@ -19,10 +19,13 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.Observer;
 import androidx.lifecycle.ViewModelProviders;
 
+import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 import com.p3druz.R;
+import com.p3druz.models.Game;
 import com.p3druz.models.PageViewModel;
 
 import org.json.JSONArray;
@@ -31,30 +34,24 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 
 public class AddFragment extends Fragment {
 
     private static final String ARG_SECTION_NUMBER = "section_number";
 
-    private PageViewModel pageViewModel;
     private NumberPicker mGameId;
     private EditText mGameNumbers;
     private SimpleAdapter mAdapter;
     private ArrayList<HashMap<String, String>> mFields;
 
-    public static AddFragment newInstance(int index) {
-        AddFragment fragment = new AddFragment();
-        Bundle bundle = new Bundle();
-        bundle.putInt(ARG_SECTION_NUMBER, index);
-        fragment.setArguments(bundle);
-        return fragment;
-    }
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
+        mFields = new ArrayList<>();
+
+        PageViewModel pageViewModel = ViewModelProviders.of(this).get(PageViewModel.class);
         int index = 1;
         if (getArguments() != null) {
             index = getArguments().getInt(ARG_SECTION_NUMBER);
@@ -69,34 +66,11 @@ public class AddFragment extends Fragment {
         View inflatedView = inflater.inflate(R.layout.fragment_add, container, false);
 
         mGameId = inflatedView.findViewById(R.id.game_id);
-
-        mGameId.setMinValue(1);
-        mGameId.setMaxValue(288);
-        mGameId.setWrapSelectorWheel(true);
-
-        String[] values = new String[288];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = String.valueOf(i+1);
-        }
-
-        mGameId.setDisplayedValues(values);
-
-        /*np.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
-            @Override
-            public void onValueChange(NumberPicker picker, int oldVal, int newVal){
-                //Display the newly selected number from picker
-                tv.setText("Selected Number : " + newVal);
-            }
-        });*/
-
+        setUpNumberPicker();
         mGameNumbers = inflatedView.findViewById(R.id.game_numbers);
 
-        ListView lv = inflatedView.findViewById(R.id.list_view);
-
-        mFields = new ArrayList<>();
-
         mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameId", "gameNumbers"}, new int[]{R.id.game_id_field, R.id.game_numbers_field});
-        lv.setAdapter(mAdapter);
+        ((ListView)inflatedView.findViewById(R.id.list_view)).setAdapter(mAdapter);
 
         inflatedView.findViewById(R.id.add_button).setOnClickListener(new View.OnClickListener() {
             @Override
@@ -115,11 +89,33 @@ public class AddFragment extends Fragment {
         return inflatedView;
     }
 
-    // add listview items in sharedpreferences
-    private void onAddButtonClick(){
+    private void setUpNumberPicker(){
+        mGameId.setMinValue(1);
+        mGameId.setMaxValue(288);
+        mGameId.setWrapSelectorWheel(true);
+
+        String[] values = new String[288];
+        for (int i = 0; i < values.length; i++) {
+            values[i] = String.valueOf(i+1);
+        }
+
+        mGameId.setDisplayedValues(values);
+    }
+
+    private void onAddButtonClick() {
+        String gameNumbersStr = mGameNumbers.getText().toString();
+
+        switch(Game.checkNumbersString(gameNumbersStr)){
+            case 1: mGameNumbers.setError("Gli elementi non sono 10"); return;
+            case 2: mGameNumbers.setError("Un elemento non è un numero"); return;
+            case 3: mGameNumbers.setError("Un numero è fuori dal range 1-90"); return;
+            case 4: mGameNumbers.setError("I numeri non sono univoci"); return;
+        }
+
         HashMap<String, String> mRow = new HashMap<>();
-        mRow.put("gameId", String.valueOf(mGameId.getValue()));
-        mRow.put("gameNumbers", mGameNumbers.getText().toString());
+        mRow.put(Game.fields[0], String.valueOf(mGameId.getValue()));
+        mRow.put(Game.fields[1], gameNumbersStr);
+        mRow.put(Game.fields[2], "not set");
         mFields.add(mRow);
         mAdapter.notifyDataSetChanged();
 
@@ -128,24 +124,33 @@ public class AddFragment extends Fragment {
     }
 
     private void onSaveButtonClick() {
-        JSONArray jsonArray = new JSONArray();
+        if(mFields.size() == 0) return;
 
-        for(HashMap<String,String> row : mFields){
-            JSONObject jsonObj = new JSONObject();
-            try {
-                jsonObj.put("gameId",row.get("gameId"));
-                jsonObj.put("gameNumbers",row.get("gameNumbers"));
-                jsonArray.put(jsonObj);
-            }catch (JSONException jsonEx)
-            {
-                jsonEx.printStackTrace();
-            }
+        JsonArray jsonArray = new JsonArray();
+
+        for(HashMap<String,String> row : mFields) {
+            JsonObject jsonObj = new JsonObject();
+            for(String field : Game.fields)
+                jsonObj.addProperty(field, row.get(field));
+            jsonArray.add(jsonObj);
         }
 
+        // Problem: join two JsonArray - faster solution: join them as strings
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
+        String jsonStrOld = sharedPreferences.getString("games", null);
+        String jsonStrNew = jsonArray.toString();
 
-        editor.putString("games", jsonArray.toString());
+        if(jsonStrOld != null) {
+            // Removes first and last square bracket
+            jsonStrOld = jsonStrOld.substring(1, jsonStrOld.length() - 1);
+            // Remove last bracket
+            jsonStrNew = jsonStrNew.substring(0, jsonStrNew.length() - 1);
+            // Insert old json and close bracket
+            jsonStrNew = jsonStrNew + "," + jsonStrOld + "]";
+        }
+
+        editor.putString("games", jsonStrNew);
         editor.apply();
 
         mFields.clear();
