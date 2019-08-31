@@ -1,7 +1,7 @@
 package com.p3druz.interfaces;
 
-import com.google.gson.JsonObject;
+import org.json.JSONObject;
 
 public interface ScraperListenerInterface {
-    void onCompleted(JsonObject results);
+    void onCompleted(JSONObject results);
 }

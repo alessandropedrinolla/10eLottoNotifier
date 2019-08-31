@@ -15,16 +15,16 @@ import android.widget.SimpleAdapter;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.p3druz.R;
 import com.p3druz.models.Game;
 
-import java.text.ParseException;
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.HashMap;
 import java.util.Locale;
 
@@ -97,7 +97,7 @@ public class AddFragment extends Fragment {
     private void onAddButtonClick() {
         String gameNumbersStr = mGameNumbers.getText().toString();
 
-        String dateStr =  Game.dateToGameFormat(mDateEditText.getText().toString());
+        String dateStr = Game.dateToGameFormat(mDateEditText.getText().toString());
         if (dateStr == null) {
             mDateEditText.setError("Data non impostata o sbagliata");
             return;
@@ -132,13 +132,19 @@ public class AddFragment extends Fragment {
 
     private void onSaveButtonClick() {
         if (mFields.size() == 0) return;
-        JsonArray jsonArray = new JsonArray();
+        JSONArray jsonArray = new JSONArray();
 
         for (HashMap<String, String> row : mFields) {
-            JsonObject jsonObj = new JsonObject();
-            for (String field : Game.FIELDS)
-                jsonObj.addProperty(field, row.get(field));
-            jsonArray.add(jsonObj);
+            JSONObject jsonObj = new JSONObject();
+            for (String field : Game.FIELDS) {
+                try {
+                    jsonObj.put(field, row.get(field));
+                } catch (JSONException jsonEx) {
+                    jsonEx.printStackTrace();
+                    return;
+                }
+            }
+            jsonArray.put(jsonObj);
         }
 
         // Problem: join two JsonArray - faster solution: join them as strings

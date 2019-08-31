@@ -11,16 +11,20 @@ import android.widget.ListView;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.p3druz.R;
 import com.p3druz.adapters.GamesAdapter;
 import com.p3druz.interfaces.ScraperListenerInterface;
 import com.p3druz.models.Game;
 import com.p3druz.network.Scraper;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Hashtable;
+import java.util.Iterator;
 
 public class ResultFragment extends Fragment implements ScraperListenerInterface {
     private ListView mListView;
@@ -60,36 +64,102 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     private void loadListView() {
         SharedPreferences sharedPref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
         String jsonStr = sharedPref.getString("games", null);
-        Gson g = new Gson();
-        JsonArray jsonArray = g.fromJson(jsonStr, JsonArray.class);
 
-        if (jsonArray == null) return;
+        if (jsonStr == null) return;
+
+        JSONArray jsonArray;
+
+        try {
+            jsonArray = new JSONArray(jsonStr);
+        } catch (JSONException jsonEx) {
+            jsonEx.printStackTrace();
+            return;
+        }
 
         mGames.clear();
 
-        Game.listFromJsonArray(mGames, jsonArray);
+        Game.listFromJSONArray(mGames, jsonArray);
 
         mGamesAdapter.notifyDataSetChanged();
     }
 
     private void checkList() {
-        Scraper.sli = this;
-        SharedPreferences sharedPref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
-        String jsonStr = sharedPref.getString("games", null);
-        Gson g = new Gson();
-        JsonArray jsonArray = g.fromJson(jsonStr, JsonArray.class);
-
-        Game.listFromJsonArray(mGames,jsonArray);
+        loadListView();
 
         // TODO check for unset results in list
         // Game ids to check for:
-        ArrayList<Integer> gameIds = new ArrayList<>();
+        Hashtable<String, HashSet<Integer>> dateGameIdSet = new Hashtable<>();
+        Scraper.sli = this;
 
-        Scraper.getData("20190829", gameIds);
+        for (Game g : mGames) {
+            if (g.getNumbersHit() == -1) {
+                if (dateGameIdSet.containsKey(g.getDateAsString())) {
+                    dateGameIdSet.get(g.getDateAsString()).add(g.getId());
+                } else {
+                    HashSet<Integer> n = new HashSet<>();
+                    n.add(g.getId());
+                    dateGameIdSet.put(g.getDateAsString(), n);
+                }
+            }
+        }
+
+        for (String key : dateGameIdSet.keySet()) {
+            Scraper.getData(key, dateGameIdSet.get(key));
+        }
     }
 
     @Override
-    public void onCompleted(JsonObject jsonObject) {
+    public void onCompleted(JSONObject resultJSON) {
+        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        String localDataStr = sharedPreferences.getString("extractions", null);
+        JSONObject localDataJSON = null;
+        String date = null;
+        try {
+            if (localDataStr == null) {
+                localDataJSON = new JSONObject();
+            } else {
+                localDataJSON = new JSONObject(localDataStr);
+            }
+            date = resultJSON.getString("date");
+            JSONObject scrapedExtractionsJSON = resultJSON.getJSONObject("extractions");
 
+            if (localDataJSON.has(date)) {
+                // Add all the missing extraction from the scraped ones
+                JSONObject localExtractionsJSON = localDataJSON.getJSONObject(date);
+
+                Iterator it = scrapedExtractionsJSON.keys();
+                while (it.hasNext()) {
+                    String gameId = (String) it.next();
+                    if (!localExtractionsJSON.has(gameId)) {
+                        // If there is not extraction with gameId save it
+                        localExtractionsJSON.put(gameId, localExtractionsJSON.get(gameId));
+                    }
+                }
+            } else {
+                // Insert all scraped extraction if there wasn't any within the specific date
+                localDataJSON.put(date, scrapedExtractionsJSON);
+            }
+        } catch (JSONException jsonEx) {
+            jsonEx.printStackTrace();
+        }
+
+        editor.putString("extractions", localDataJSON.toString());
+        editor.apply();
+
+        // edit the mGames that have the resultJSON date that are not yet set
+        for (Game g : mGames) {
+            if (g.getNumbersHit() == -1 && g.getDateAsString().equals(date)) {
+                try {
+                    String numbers = localDataJSON.getJSONObject(date).getString(String.valueOf(g.getId()));
+
+                } catch (JSONException jsonEx) {
+                    jsonEx.printStackTrace();
+                    return;
+                }
+            }
+        }
+
+        mGamesAdapter.notifyDataSetChanged();
     }
 }

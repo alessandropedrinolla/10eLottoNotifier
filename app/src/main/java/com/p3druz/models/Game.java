@@ -1,10 +1,7 @@
 package com.p3druz.models;
 
-import android.view.animation.GridLayoutAnimationController;
-
-import com.google.gson.JsonArray;
-import com.google.gson.JsonElement;
-import com.google.gson.JsonObject;
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -12,7 +9,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
-import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
@@ -149,11 +145,35 @@ public class Game {
         this.mDate = date;
     }
 
-    public static void listFromJsonArray(ArrayList<Game> gameList, JsonArray ja) {
-        for (JsonElement e : ja) {
-            JsonObject jsonObject = e.getAsJsonObject();
-            Game game = new Game(jsonObject.get(Game.FIELDS[0]).getAsString(), jsonObject.get(Game.FIELDS[1]).getAsInt(), jsonObject.get(Game.FIELDS[2]).toString().replace("\"", ""), jsonObject.get(Game.FIELDS[3]).getAsInt());
+    public static void listFromJSONArray(ArrayList<Game> gameList, JSONArray ja) {
+        for (int i = 0; i < ja.length(); i++) {
+            Game game = null;
+            try {
+                game = new Game(ja.getJSONObject(i).getString(Game.FIELDS[0]), ja.getJSONObject(i).getInt(Game.FIELDS[1]), ja.getJSONObject(i).getString(Game.FIELDS[2]).replace("\"", ""), ja.getJSONObject(i).getInt(Game.FIELDS[3]));
+            } catch (JSONException jsonEx) {
+                jsonEx.printStackTrace();
+                return;
+            }
+
             gameList.add(game);
         }
+    }
+
+    public int checkNumbersHit(String numbers){
+        // TODO this
+
+        String[] parts = numbers.split(" ");
+
+        HashSet<Integer> join = new HashSet<>();
+
+        for(String s : parts){
+            join.add(Integer.parseInt(s));
+        }
+
+        for (int n : mNumbers) {
+            join.add(n);
+        }
+
+        return mNumbers.size()-join.size();
     }
 }
