@@ -11,6 +11,7 @@ import com.p3druz.R;
 import com.p3druz.models.Game;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class GamesAdapter extends ArrayAdapter<Game> {
     public GamesAdapter(Context context, ArrayList<Game> games) {
@@ -38,5 +39,4 @@ public class GamesAdapter extends ArrayAdapter<Game> {
         // Return the completed view to render on screen
         return convertView;
     }
-
 }

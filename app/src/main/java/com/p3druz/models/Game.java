@@ -1,41 +1,44 @@
 package com.p3druz.models;
 
-import java.net.Inet4Address;
+import android.view.animation.GridLayoutAnimationController;
+
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
 public class Game {
     public final static String[] FIELDS = {"gameDate", "gameId", "gameNumbers", "numbersHit"};
-    public final static String DATE_FORMAT = ("YYYYMMdd");
-    public final static String DATE_LOCALE_FORMAT = ("dd/MM/YYYY");
+
+    private final static String DATE_FORMAT = ("yyyyMMdd");
+    public final static String DATE_LOCALE_FORMAT = ("dd/MM/yyyy");
 
     private Date mDate;
     private int mId;
     private Set<Integer> mNumbers;
     private int mNumbersHit;
 
-    public Game(int id, Set<Integer> numbers, int numbersHit) {
-        this.mId = id;
-        this.mNumbers = numbers;
-        this.mNumbersHit = numbersHit;
-    }
-
-    public Game(String date, int id, String numbers, int numbersHit) {
+    private Game(String date, int id, String numbers, int numbersHit) {
         try {
             this.mDate = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
-        }catch (ParseException pe){
+        } catch (ParseException pe) {
             pe.printStackTrace();
         }
         this.mId = id;
         String[] parts = numbers.split(" ");
         this.mNumbers = new HashSet<>();
-        for (String part : parts)
+        for (String part : parts) {
             this.mNumbers.add(Integer.parseInt(part));
+        }
         this.mNumbersHit = numbersHit;
     }
 
@@ -52,7 +55,6 @@ public class Game {
     }
 
     public String getNumbersAsString() {
-        String numbers = "";
         StringBuilder sb = new StringBuilder();
         for (int n : mNumbers) {
             sb.append(n);
@@ -107,11 +109,11 @@ public class Game {
         return 0;
     }
 
-    public static String dateToLocaleFormat(String date){
+    public static String dateToLocaleFormat(String date) {
         Date d;
         try {
             d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
-        }catch (ParseException pe){
+        } catch (ParseException pe) {
             pe.printStackTrace();
             return null;
         }
@@ -119,12 +121,11 @@ public class Game {
         return new SimpleDateFormat(Game.DATE_LOCALE_FORMAT, Locale.getDefault()).format(d);
     }
 
-    public static String dateToGameFormat(String date){
+    public static String dateToGameFormat(String date) {
         Date d;
         try {
-            // TODO FIX DIS
             d = new SimpleDateFormat(DATE_LOCALE_FORMAT, Locale.getDefault()).parse(date);
-        }catch (ParseException pe){
+        } catch (ParseException pe) {
             pe.printStackTrace();
             return null;
         }
@@ -146,5 +147,13 @@ public class Game {
 
     public void setDate(Date date) {
         this.mDate = date;
+    }
+
+    public static void listFromJsonArray(ArrayList<Game> gameList, JsonArray ja) {
+        for (JsonElement e : ja) {
+            JsonObject jsonObject = e.getAsJsonObject();
+            Game game = new Game(jsonObject.get(Game.FIELDS[0]).getAsString(), jsonObject.get(Game.FIELDS[1]).getAsInt(), jsonObject.get(Game.FIELDS[2]).toString().replace("\"", ""), jsonObject.get(Game.FIELDS[3]).getAsInt());
+            gameList.add(game);
+        }
     }
 }
