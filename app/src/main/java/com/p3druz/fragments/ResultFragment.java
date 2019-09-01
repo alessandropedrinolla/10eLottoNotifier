@@ -151,6 +151,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     }
 
     private void loadGames() {
+        // TODO bring back gson
         SharedPreferences sharedPref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
         String jsonStr = sharedPref.getString(Config.USER_DATA, null);
         if (jsonStr == null) return;

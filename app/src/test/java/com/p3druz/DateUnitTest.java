@@ -1,7 +1,11 @@
 package com.p3druz;
 
+import com.p3druz.interfaces.ScraperListenerInterface;
 import com.p3druz.models.Game;
+import com.p3druz.network.Scraper;
 
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.Test;
 
 import java.text.ParseException;
@@ -16,12 +20,7 @@ import static org.junit.Assert.*;
  *
  * @see <a href="http://d.android.com/tools/testing">Testing documentation</a>
  */
-public class ExampleUnitTest {
-    @Test
-    public void addition_isCorrect() {
-        assertEquals(4, 2 + 2);
-    }
-
+public class DateUnitTest {
     @Test
     public void dateConversionIsCorrect() {
         Date d = null;
