@@ -2,12 +2,14 @@ package com.p3druz.models;
 
 import org.json.JSONArray;
 import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
@@ -145,7 +147,7 @@ public class Game {
         this.mDate = date;
     }
 
-    public static void listFromJSONArray(ArrayList<Game> gameList, JSONArray ja) {
+    public static void JSONArrayToList(ArrayList<Game> gameList, JSONArray ja) {
         for (int i = 0; i < ja.length(); i++) {
             Game game = null;
             try {
@@ -159,21 +161,38 @@ public class Game {
         }
     }
 
-    public int checkNumbersHit(String numbers){
-        // TODO this
+    public static JSONArray ListToJSONArray(ArrayList<Game> gameList) {
+        JSONArray jsonArray = new JSONArray();
 
+        for (Game g : gameList) {
+            JSONObject jsonObj = new JSONObject();
+
+            try {
+                jsonObj.put(FIELDS[0], g.getDateAsString());
+                jsonObj.put(FIELDS[1], g.getId());
+                jsonObj.put(FIELDS[2], g.getNumbersAsString());
+                jsonObj.put(FIELDS[3], g.getNumbersHit());
+            } catch (JSONException jsonEx) {
+                jsonEx.printStackTrace();
+                return null;
+            }
+
+            jsonArray.put(jsonObj);
+        }
+        return jsonArray;
+    }
+
+    public void checkNumbersHit(String numbers) {
         String[] parts = numbers.split(" ");
 
         HashSet<Integer> join = new HashSet<>();
 
-        for(String s : parts){
+        for (String s : parts) {
             join.add(Integer.parseInt(s));
         }
 
-        for (int n : mNumbers) {
-            join.add(n);
-        }
+        join.addAll(mNumbers);
 
-        return mNumbers.size()-join.size();
+        this.mNumbersHit = 30 - join.size();
     }
 }

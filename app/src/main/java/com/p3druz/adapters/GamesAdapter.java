@@ -5,15 +5,17 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 import com.p3druz.R;
+import com.p3druz.interfaces.GameAdapterListenerInterface;
 import com.p3druz.models.Game;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class GamesAdapter extends ArrayAdapter<Game> {
+    public GameAdapterListenerInterface gali;
     public GamesAdapter(Context context, ArrayList<Game> games) {
         super(context, 0, games);
     }
@@ -31,11 +33,13 @@ public class GamesAdapter extends ArrayAdapter<Game> {
         TextView gameIdField = convertView.findViewById(R.id.game_id_field);
         TextView gameNumbersField = convertView.findViewById(R.id.game_numbers_field);
         TextView gameNumbersHit = convertView.findViewById(R.id.game_numbers_hit);
+        Button gameDelete = convertView.findViewById(R.id.game_delete);
         // Populate the data into the template view using the data object
         gameDateField.setText(game.getDateAsStringLocale());
         gameIdField.setText(String.valueOf(game.getId()));
         gameNumbersField.setText(game.getNumbersAsString());
         gameNumbersHit.setText(String.valueOf(game.getNumbersHit()));
+        gameDelete.setOnClickListener(view -> gali.deleteGame(game));
         // Return the completed view to render on screen
         return convertView;
     }

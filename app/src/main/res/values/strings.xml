@@ -10,4 +10,5 @@
     <string name="refresh_list">Aggiorna lista</string>
     <string name="check_list">Controlla lista</string>
     <string name="game_date">Data</string>
+    <string name="game_delete">X</string>
 </resources>

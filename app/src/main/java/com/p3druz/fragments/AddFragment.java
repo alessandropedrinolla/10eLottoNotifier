@@ -16,6 +16,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.p3druz.R;
+import com.p3druz.models.Config;
 import com.p3druz.models.Game;
 
 import org.json.JSONArray;
@@ -150,7 +151,7 @@ public class AddFragment extends Fragment {
         // Problem: join two JsonArray - faster solution: join them as strings
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        String jsonStrOld = sharedPreferences.getString("games", null);
+        String jsonStrOld = sharedPreferences.getString(Config.USER_DATA, null);
         String jsonStrNew = jsonArray.toString();
 
         if (jsonStrOld != null) {
@@ -162,7 +163,7 @@ public class AddFragment extends Fragment {
             jsonStrNew = jsonStrNew + "," + jsonStrOld + "]";
         }
 
-        editor.putString("games", jsonStrNew);
+        editor.putString(Config.USER_DATA, jsonStrNew);
         editor.apply();
 
         mFields.clear();

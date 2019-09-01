@@ -48,16 +48,15 @@ public class Scraper {
                 }
 
                 selector = selector.substring(0, selector.length() - 1);
-
+                // TODO fix error
                 Elements rows = d.select(selector);
-
                 JSONObject data = new JSONObject();
-                JSONObject estractions = new JSONObject();
+                JSONObject extractions = new JSONObject();
 
                 int currentGameId;
 
                 for (Element row : rows) {
-                    estractions = new JSONObject();
+                    extractions = new JSONObject();
                     it = gameIds.iterator();
                     while (it.hasNext()) {
                         Elements columns = row.select("td div.numeroEstratto");
@@ -66,7 +65,7 @@ public class Scraper {
                             numbers += el.text() + " ";
                         }
                         try {
-                            estractions.put(String.valueOf(it.next()), numbers);
+                            extractions.put(String.valueOf(it.next()), numbers);
                         } catch (JSONException jsonEx) {
                             jsonEx.printStackTrace();
                         }
@@ -75,7 +74,7 @@ public class Scraper {
 
                 try {
                     data.put("date", date);
-                    data.put("extractions", estractions);
+                    data.put("extractions", extractions);
                 } catch (JSONException jsonEx) {
                     jsonEx.printStackTrace();
                 }
