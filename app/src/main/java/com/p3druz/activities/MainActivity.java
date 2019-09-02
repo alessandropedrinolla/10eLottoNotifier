@@ -13,6 +13,7 @@ import android.view.View;
 
 import com.p3druz.R;
 import com.p3druz.utils.SectionsPagerAdapter;
+import com.p3druz.utils.SharedPreferencesUtil;
 
 public class MainActivity extends AppCompatActivity {
     @Override

@@ -13,13 +13,18 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import com.google.gson.reflect.TypeToken;
 import com.p3druz.R;
 import com.p3druz.adapters.GamesAdapter;
 import com.p3druz.interfaces.GameAdapterListenerInterface;
 import com.p3druz.interfaces.ScraperListenerInterface;
 import com.p3druz.models.Config;
 import com.p3druz.models.Game;
+import com.p3druz.models.ScrapeData;
 import com.p3druz.network.Scraper;
+import com.p3druz.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -29,6 +34,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;
+import java.util.Set;
 
 public class ResultFragment extends Fragment implements ScraperListenerInterface, GameAdapterListenerInterface {
     private ListView mListView;
@@ -37,13 +43,15 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     private ProgressBar mProgressBar;
     private int mProgress;
     private int mProgressMax;
-
+    private SharedPreferencesUtil mSharedPreferencesUtil;
+    private Gson mGson;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         mGames = new ArrayList<>();
+        mGson = new Gson();
+        mSharedPreferencesUtil = new SharedPreferencesUtil(getActivity());
     }
 
     @Override
@@ -52,7 +60,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
             Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_result, container, false);
 
-        inflatedView.findViewById(R.id.refresh_button).setOnClickListener(view -> loadGames());
+        inflatedView.findViewById(R.id.refresh_button).setOnClickListener(view -> mSharedPreferencesUtil.loadGames());
 
         inflatedView.findViewById(R.id.check_button).setOnClickListener(view -> checkList());
 
@@ -60,7 +68,9 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         mListView = inflatedView.findViewById(R.id.list_view);
 
         setupListView();
-        loadGames();
+
+        mGames = mSharedPreferencesUtil.loadGames();
+        mGamesAdapter.notifyDataSetChanged();
 
         return inflatedView;
     }
@@ -72,9 +82,9 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     }
 
     private void checkList() {
-        loadGames();
+        mGames = mSharedPreferencesUtil.loadGames();
+        mGamesAdapter.notifyDataSetChanged();
 
-        // TODO check for unset results in list
         // Game ids to check for:
         Hashtable<String, HashSet<Integer>> dateGameIdSet = new Hashtable<>();
         Scraper.sli = this;
@@ -91,8 +101,8 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
             }
         }
 
-        for (String key : dateGameIdSet.keySet()) {
-            Scraper.getData(key, dateGameIdSet.get(key));
+        for (String date : dateGameIdSet.keySet()) {
+            Scraper.getData(date, dateGameIdSet.get(date));
         }
 
         mProgress = 0;
@@ -103,75 +113,43 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     }
 
     @Override
-    public void onCompleted(JSONObject resultJSON) {
-        mProgress++;
-        mProgressBar.setProgress(mProgress);
-
-        persistScrapeData(resultJSON);
+    public void onCompleted(String resultJSON) {
+        ScrapeData scrapeData = mGson.fromJson(resultJSON, ScrapeData.class);
+        mSharedPreferencesUtil.persistScrapeData(scrapeData);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        String localDataStr = sharedPreferences.getString(Config.SCRAPE_DATA, null);
-        JSONObject localDataJSON;
-        String date;
-        try {
-            if (localDataStr == null) {
-                localDataJSON = new JSONObject();
-            } else {
-                localDataJSON = new JSONObject(localDataStr);
-            }
-            date = resultJSON.getString("date");
-        } catch (JSONException jsonEx) {
-            jsonEx.printStackTrace();
-            return;
-        }
+
+        String date = scrapeData.getDate();
+
         // edit the mGames that have the resultJSON date that are not yet set
         for (Game g : mGames) {
             if (g.getNumbersHit() == -1 && g.getDateAsString().equals(date)) {
-                try {
-                    JSONObject extractions = localDataJSON.getJSONObject(date);
-                    String numbers = extractions.getString(String.valueOf(g.getId()));
-                    Runnable runnable = () -> {
-                        g.checkNumbersHit(numbers);
-                        mGamesAdapter.notifyDataSetChanged();
-                        if (mProgress == mProgressMax) {
-                            mProgressBar.setVisibility(View.GONE);
-                        }
-                    };
-                    Handler handler = new Handler(getContext().getMainLooper());
-                    handler.post(runnable);
-                } catch (JSONException jsonEx) {
-                    jsonEx.printStackTrace();
-                    return;
-                }
+                String numbers = scrapeData.getExtractions().get(g.getId()).getNumbersAsString();
+                Runnable runnable = () -> {
+                    g.checkNumbersHit(numbers);
+                    mGamesAdapter.notifyDataSetChanged();
+                    if (mProgress == mProgressMax) {
+                        mProgressBar.setVisibility(View.GONE);
+                    }
+                };
+                Handler handler = new Handler(getContext().getMainLooper());
+                handler.post(runnable);
             }
         }
-        editor.putString(Config.USER_DATA, Game.ListToJSONArray(mGames).toString());
+
+        editor.putString(Config.USER_DATA, mGson.toJson(mGames));
         editor.apply();
-    }
 
-    private void loadGames() {
-        // TODO bring back gson
-        SharedPreferences sharedPref = getContext().getSharedPreferences("data", Context.MODE_PRIVATE);
-        String jsonStr = sharedPref.getString(Config.USER_DATA, null);
-        if (jsonStr == null) return;
-
-        JSONArray jsonArray;
-        try {
-            jsonArray = new JSONArray(jsonStr);
-        } catch (JSONException jsonEx) {
-            jsonEx.printStackTrace();
-            return;
-        }
-        mGames.clear();
-        Game.JSONArrayToList(mGames, jsonArray);
-        mGamesAdapter.notifyDataSetChanged();
+        // Progress bar advance
+        mProgress++;
+        mProgressBar.setProgress(mProgress);
     }
 
     private void persistGames() {
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(Config.USER_DATA, Game.ListToJSONArray(mGames).toString());
+        editor.putString(Config.USER_DATA, mGson.toJson(mGames));
         editor.apply();
         mGamesAdapter.notifyDataSetChanged();
     }
@@ -182,42 +160,5 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         persistGames();
     }
 
-    private void persistScrapeData(JSONObject resultJSON) {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        String localDataStr = sharedPreferences.getString(Config.SCRAPE_DATA, null);
-        JSONObject localDataJSON = null;
-        String date;
-        try {
-            if (localDataStr == null) {
-                localDataJSON = new JSONObject();
-            } else {
-                localDataJSON = new JSONObject(localDataStr);
-            }
-            date = resultJSON.getString("date");
 
-            JSONObject scrapedExtractionsJSON = resultJSON.getJSONObject("extractions");
-
-            if (localDataJSON.has(date)) {
-                // Add all the missing extraction from the scraped ones
-                JSONObject localExtractionsJSON = localDataJSON.getJSONObject(date);
-
-                Iterator it = scrapedExtractionsJSON.keys();
-                while (it.hasNext()) {
-                    String gameId = (String) it.next();
-                    if (!localExtractionsJSON.has(gameId)) {
-                        // If there is not extraction with gameId save it
-                        localExtractionsJSON.put(gameId, localExtractionsJSON.get(gameId));
-                    }
-                }
-            } else {
-                // Insert all scraped extraction if there wasn't any within the specific date
-                localDataJSON.put(date, scrapedExtractionsJSON);
-            }
-        } catch (JSONException jsonEx) {
-            jsonEx.printStackTrace();
-        }
-        editor.putString(Config.SCRAPE_DATA, localDataJSON.toString());
-        editor.apply();
-    }
 }

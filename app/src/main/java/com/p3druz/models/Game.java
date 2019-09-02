@@ -14,7 +14,7 @@ import java.util.HashSet;
 import java.util.Locale;
 import java.util.Set;
 
-public class Game {
+public class Game extends Extraction{
     public final static String[] FIELDS = {"gameDate", "gameId", "gameNumbers", "numbersHit"};
 
     private final static String DATE_FORMAT = ("yyyyMMdd");
@@ -25,17 +25,13 @@ public class Game {
     private Set<Integer> mNumbers;
     private int mNumbersHit;
 
-    private Game(String date, int id, String numbers, int numbersHit) {
+    public Game(String date, int id, String numbers, int numbersHit) {
+        super(id,numbers);
+
         try {
             this.mDate = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
         } catch (ParseException pe) {
             pe.printStackTrace();
-        }
-        this.mId = id;
-        String[] parts = numbers.split(" ");
-        this.mNumbers = new HashSet<>();
-        for (String part : parts) {
-            this.mNumbers.add(Integer.parseInt(part));
         }
         this.mNumbersHit = numbersHit;
     }
@@ -48,29 +44,8 @@ public class Game {
         this.mId = id;
     }
 
-    public Set<Integer> getNumbers() {
-        return mNumbers;
-    }
-
-    public String getNumbersAsString() {
-        StringBuilder sb = new StringBuilder();
-        for (int n : mNumbers) {
-            sb.append(n);
-            sb.append(" ");
-        }
-        return sb.toString();
-    }
-
-    public void setNumbers(Set<Integer> numbers) {
-        this.mNumbers = numbers;
-    }
-
     public int getNumbersHit() {
         return mNumbersHit;
-    }
-
-    public void setNumbersHit(int numbersHit) {
-        this.mNumbersHit = numbersHit;
     }
 
     /**
@@ -131,10 +106,6 @@ public class Game {
         return new SimpleDateFormat(Game.DATE_FORMAT, Locale.getDefault()).format(d);
     }
 
-    public Date getDate() {
-        return mDate;
-    }
-
     public String getDateAsString() {
         return new SimpleDateFormat(Game.DATE_FORMAT, Locale.getDefault()).format(mDate);
     }
@@ -143,13 +114,9 @@ public class Game {
         return new SimpleDateFormat(Game.DATE_LOCALE_FORMAT, Locale.getDefault()).format(mDate);
     }
 
-    public void setDate(Date date) {
-        this.mDate = date;
-    }
-
     public static void JSONArrayToList(ArrayList<Game> gameList, JSONArray ja) {
         for (int i = 0; i < ja.length(); i++) {
-            Game game = null;
+            Game game;
             try {
                 game = new Game(ja.getJSONObject(i).getString(Game.FIELDS[0]), ja.getJSONObject(i).getInt(Game.FIELDS[1]), ja.getJSONObject(i).getString(Game.FIELDS[2]).replace("\"", ""), ja.getJSONObject(i).getInt(Game.FIELDS[3]));
             } catch (JSONException jsonEx) {

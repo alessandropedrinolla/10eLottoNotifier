@@ -15,9 +15,12 @@ import android.widget.SimpleAdapter;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.p3druz.R;
 import com.p3druz.models.Config;
 import com.p3druz.models.Game;
+import com.p3druz.utils.SharedPreferencesUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -35,12 +38,14 @@ public class AddFragment extends Fragment {
     private EditText mGameNumbers;
     private SimpleAdapter mAdapter;
     private ArrayList<HashMap<String, String>> mFields;
+    private SharedPreferencesUtil mSharedPreferencesUtil;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mFields = new ArrayList<>();
+        mSharedPreferencesUtil = new SharedPreferencesUtil(getActivity());
     }
 
     @Override
@@ -87,7 +92,7 @@ public class AddFragment extends Fragment {
         mGameId.setMaxValue(288);
         mGameId.setWrapSelectorWheel(true);
 
-        String[] values = new String[288];
+        String[] values = new String[287];
         for (int i = 0; i < values.length; i++) {
             values[i] = String.valueOf(i + 1);
         }
@@ -133,39 +138,12 @@ public class AddFragment extends Fragment {
 
     private void onSaveButtonClick() {
         if (mFields.size() == 0) return;
-        JSONArray jsonArray = new JSONArray();
-
+        ArrayList<Game> games = new ArrayList<>();
         for (HashMap<String, String> row : mFields) {
-            JSONObject jsonObj = new JSONObject();
-            for (String field : Game.FIELDS) {
-                try {
-                    jsonObj.put(field, row.get(field));
-                } catch (JSONException jsonEx) {
-                    jsonEx.printStackTrace();
-                    return;
-                }
-            }
-            jsonArray.put(jsonObj);
+            Game g = new Game(row.get(Game.FIELDS[0]),Integer.parseInt(row.get(Game.FIELDS[1])), row.get(Game.FIELDS[2]), Integer.parseInt(row.get(Game.FIELDS[3])));
+            games.add(g);
         }
-
-        // Problem: join two JsonArray - faster solution: join them as strings
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        String jsonStrOld = sharedPreferences.getString(Config.USER_DATA, null);
-        String jsonStrNew = jsonArray.toString();
-
-        if (jsonStrOld != null) {
-            // Removes first and last square bracket
-            jsonStrOld = jsonStrOld.substring(1, jsonStrOld.length() - 1);
-            // Remove last bracket
-            jsonStrNew = jsonStrNew.substring(0, jsonStrNew.length() - 1);
-            // Insert old json and close bracket
-            jsonStrNew = jsonStrNew + "," + jsonStrOld + "]";
-        }
-
-        editor.putString(Config.USER_DATA, jsonStrNew);
-        editor.apply();
-
+        mSharedPreferencesUtil.saveGames(games);
         mFields.clear();
         mAdapter.notifyDataSetChanged();
     }

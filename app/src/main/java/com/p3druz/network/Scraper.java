@@ -1,16 +1,19 @@
 package com.p3druz.network;
 
+import com.google.gson.Gson;
 import com.p3druz.interfaces.ScraperListenerInterface;
+import com.p3druz.models.Extraction;
+import com.p3druz.models.ScrapeData;
 
-import org.json.JSONException;
-import org.json.JSONObject;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.Locale;
 
@@ -19,7 +22,7 @@ public class Scraper {
     public static ScraperListenerInterface sli;
 
     /**
-     * Gets the extracted numbers associated with the @gameIds provided
+     * Gets the extracted numbers associated with the @date and @gameIds provided
      *
      * @param date
      * @param gameIds
@@ -31,7 +34,6 @@ public class Scraper {
             @Override
             public void run() {
                 Document d;
-
                 try {
                     // Connect to website
                     d = Jsoup.connect(url).timeout(10 * 1000).get();
@@ -48,15 +50,13 @@ public class Scraper {
                 }
 
                 selector = selector.substring(0, selector.length() - 1);
-                // TODO fix error
                 Elements rows = d.select(selector);
-                JSONObject data = new JSONObject();
-                JSONObject extractions = new JSONObject();
 
-                int currentGameId;
+                Gson g = new Gson();
+
+                Hashtable<Integer,Extraction> extractions = new Hashtable<>();
 
                 for (Element row : rows) {
-                    extractions = new JSONObject();
                     it = gameIds.iterator();
                     while (it.hasNext()) {
                         Elements columns = row.select("td div.numeroEstratto");
@@ -64,22 +64,14 @@ public class Scraper {
                         for (Element el : columns) {
                             numbers += el.text() + " ";
                         }
-                        try {
-                            extractions.put(String.valueOf(it.next()), numbers);
-                        } catch (JSONException jsonEx) {
-                            jsonEx.printStackTrace();
-                        }
+                        int gameId = (int)it.next();
+                        extractions.put(gameId, new Extraction(gameId, numbers));
                     }
                 }
 
-                try {
-                    data.put("date", date);
-                    data.put("extractions", extractions);
-                } catch (JSONException jsonEx) {
-                    jsonEx.printStackTrace();
-                }
+                ScrapeData data = new ScrapeData(date, extractions);
 
-                sli.onCompleted(data);
+                sli.onCompleted(g.toJson(data));
             }
         }).start();
     }

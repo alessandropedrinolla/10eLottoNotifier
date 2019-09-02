@@ -4,25 +4,38 @@
     android:id="@+id/constraintLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.ResultFragment"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    tools:context=".fragments.ResultFragment">
 
-    <Button
-        android:id="@+id/refresh_button"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="@string/refresh_list"/>
-    <Button
-        android:id="@+id/check_button"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="@string/check_list"/>
+        android:orientation="horizontal">
+
+        <Button
+            android:id="@+id/refresh_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/refresh_list"
+            style="?android:attr/borderlessButtonStyle"/>
+
+        <Button
+            android:id="@+id/check_button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/check_list"
+            style="?android:attr/borderlessButtonStyle"/>
+    </LinearLayout>
+
     <ProgressBar
         android:id="@+id/check_progress_bar"
+        style="@style/Widget.AppCompat.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:visibility="gone"
-        style="@style/Widget.AppCompat.ProgressBar.Horizontal" />
+        android:visibility="gone" />
+
     <ListView
         android:id="@+id/list_view"
         android:layout_width="fill_parent"
