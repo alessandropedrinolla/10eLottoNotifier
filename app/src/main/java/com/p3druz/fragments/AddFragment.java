@@ -26,15 +26,21 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import java.lang.reflect.Array;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Locale;
+import java.util.Random;
 
 public class AddFragment extends Fragment {
     private EditText mDateEditText;
-    private NumberPicker mGameId;
+    private EditText mGameId;
     private EditText mGameNumbers;
     private SimpleAdapter mAdapter;
     private ArrayList<HashMap<String, String>> mFields;
@@ -73,31 +79,34 @@ public class AddFragment extends Fragment {
                 myCalendar.get(Calendar.DAY_OF_MONTH)).show());
 
         mGameId = inflatedView.findViewById(R.id.game_id);
-        setUpNumberPicker();
         mGameNumbers = inflatedView.findViewById(R.id.game_numbers);
-        mGameNumbers.setText("10 12 33 45 54 66 67 78 88 90");
 
         mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameId", "gameNumbers"}, new int[]{R.id.game_id_field, R.id.game_numbers_field});
         ((ListView) inflatedView.findViewById(R.id.list_view)).setAdapter(mAdapter);
 
+        inflatedView.findViewById(R.id.random_button).setOnClickListener(v -> onRandomButtonClick());
         inflatedView.findViewById(R.id.add_button).setOnClickListener(v -> onAddButtonClick());
-
         inflatedView.findViewById(R.id.save_button).setOnClickListener(v -> onSaveButtonClick());
 
         return inflatedView;
     }
 
-    private void setUpNumberPicker() {
-        mGameId.setMinValue(1);
-        mGameId.setMaxValue(288);
-        mGameId.setWrapSelectorWheel(true);
-
-        String[] values = new String[287];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = String.valueOf(i + 1);
+    private void onRandomButtonClick() {
+        HashSet<Integer> randomNums = new HashSet<>();
+        Random r = new Random();
+        while(randomNums.size()<10){
+            randomNums.add(r.nextInt(90)+1);
         }
 
-        mGameId.setDisplayedValues(values);
+        ArrayList<Integer> nums = new ArrayList<>(randomNums);
+        Collections.sort(nums);
+
+        StringBuilder sb = new StringBuilder();
+        for (Integer randomNum : nums) {
+            sb.append(randomNum);
+            sb.append(" ");
+        }
+        mGameNumbers.setText(sb.toString());
     }
 
     private void onAddButtonClick() {
@@ -126,13 +135,12 @@ public class AddFragment extends Fragment {
 
         HashMap<String, String> mRow = new HashMap<>();
         mRow.put(Game.FIELDS[0], dateStr);
-        mRow.put(Game.FIELDS[1], String.valueOf(mGameId.getValue()));
+        mRow.put(Game.FIELDS[1], mGameId.getText().toString());
         mRow.put(Game.FIELDS[2], gameNumbersStr);
         mRow.put(Game.FIELDS[3], "-1");
         mFields.add(mRow);
         mAdapter.notifyDataSetChanged();
 
-        mGameId.setValue(1);
         mGameNumbers.setText("");
     }
 

@@ -5,7 +5,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 import com.p3druz.models.Config;
 import com.p3druz.models.Game;
@@ -31,7 +30,7 @@ public class SharedPreferencesUtil {
         String oldGamesStr = sharedPreferences.getString(Config.USER_DATA, null);
         ArrayList<Game> oldGames = gson.fromJson(oldGamesStr, new TypeToken<ArrayList<Game>>() {
         }.getType());
-
+        // todo fix null pointer when on save
         games.addAll(oldGames);
 
         editor.putString(Config.USER_DATA, gson.toJson(games));
