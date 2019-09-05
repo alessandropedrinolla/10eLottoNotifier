@@ -1,4 +1,4 @@
-package com.p3druz.utils;
+package com.alessandropedrinolla.lottoNotifier.utils;
 
 import android.app.Activity;
 import android.content.Context;
@@ -6,9 +6,9 @@ import android.content.SharedPreferences;
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
-import com.p3druz.models.Config;
-import com.p3druz.models.Game;
-import com.p3druz.models.ScrapeData;
+import com.alessandropedrinolla.lottoNotifier.models.Config;
+import com.alessandropedrinolla.lottoNotifier.models.Game;
+import com.alessandropedrinolla.lottoNotifier.models.ScrapeData;
 
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -18,11 +18,11 @@ public class SharedPreferencesUtil {
     private static Gson mGson = new Gson();
     private Activity mActivity;
 
-    public SharedPreferencesUtil(Activity activity){
+    public SharedPreferencesUtil(Activity activity) {
         this.mActivity = activity;
     }
 
-    public void saveGames(ArrayList<Game> games){
+    public void persistGames(ArrayList<Game> games) {
         SharedPreferences sharedPreferences = mActivity.getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
 
@@ -30,8 +30,10 @@ public class SharedPreferencesUtil {
         String oldGamesStr = sharedPreferences.getString(Config.USER_DATA, null);
         ArrayList<Game> oldGames = gson.fromJson(oldGamesStr, new TypeToken<ArrayList<Game>>() {
         }.getType());
-        // todo fix null pointer when on save
-        games.addAll(oldGames);
+
+        if (oldGames != null) {
+            games.addAll(oldGames);
+        }
 
         editor.putString(Config.USER_DATA, gson.toJson(games));
         editor.apply();
@@ -69,11 +71,13 @@ public class SharedPreferencesUtil {
         editor.apply();
     }
 
-    public ArrayList<Game> loadGames() {
+    public void loadGames(ArrayList<Game> games) {
         SharedPreferences sharedPref = mActivity.getSharedPreferences("data", Context.MODE_PRIVATE);
         String jsonStr = sharedPref.getString(Config.USER_DATA, null);
-        if (jsonStr == null) return null;
-        return mGson.fromJson(jsonStr, new TypeToken<ArrayList<Game>>() {
-        }.getType());
+        if (jsonStr == null) {
+            return;
+        }
+        games.clear();
+        games.addAll(mGson.fromJson(jsonStr, new TypeToken<ArrayList<Game>>() {}.getType()));
     }
 }

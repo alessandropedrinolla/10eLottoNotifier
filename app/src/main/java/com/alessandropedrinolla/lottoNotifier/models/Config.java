@@ -1,4 +1,4 @@
-package com.p3druz.models;
+package com.alessandropedrinolla.lottoNotifier.models;
 
 public class Config {
     public static final String USER_DATA = "userData";

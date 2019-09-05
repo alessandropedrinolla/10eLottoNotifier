@@ -1,4 +1,4 @@
-package com.p3druz.utils;
+package com.alessandropedrinolla.lottoNotifier.utils;
 
 import android.content.Context;
 
@@ -8,9 +8,9 @@ import androidx.fragment.app.Fragment;
 import androidx.fragment.app.FragmentManager;
 import androidx.fragment.app.FragmentPagerAdapter;
 
-import com.p3druz.R;
-import com.p3druz.fragments.AddFragment;
-import com.p3druz.fragments.ResultFragment;
+import com.alessandropedrinolla.lottoNotifier.R;
+import com.alessandropedrinolla.lottoNotifier.fragments.AddFragment;
+import com.alessandropedrinolla.lottoNotifier.fragments.ResultFragment;
 
 public class SectionsPagerAdapter extends FragmentPagerAdapter {
 

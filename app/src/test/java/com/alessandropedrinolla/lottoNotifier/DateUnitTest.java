@@ -1,4 +1,4 @@
-package com.p3druz;
+package com.alessandropedrinolla.lottoNotifier;
 
 import org.junit.Test;
 

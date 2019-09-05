@@ -1,4 +1,4 @@
-package com.p3druz.adapters;
+package com.alessandropedrinolla.lottoNotifier.adapters;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -8,9 +8,9 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.p3druz.R;
-import com.p3druz.interfaces.GameAdapterListenerInterface;
-import com.p3druz.models.Game;
+import com.alessandropedrinolla.lottoNotifier.R;
+import com.alessandropedrinolla.lottoNotifier.interfaces.GameAdapterListenerInterface;
+import com.alessandropedrinolla.lottoNotifier.models.Game;
 
 import java.util.ArrayList;
 
@@ -35,7 +35,7 @@ public class GamesAdapter extends ArrayAdapter<Game> {
         TextView gameNumbersHit = convertView.findViewById(R.id.game_numbers_hit);
         Button gameDelete = convertView.findViewById(R.id.game_delete);
         // Populate the data into the template view using the data object
-        gameDateField.setText(game.getDateAsStringLocale());
+        gameDateField.setText(game.getDateLocaleFormat());
         gameIdField.setText(String.valueOf(game.getId()));
         gameNumbersField.setText(game.getNumbersAsString());
         gameNumbersHit.setText(String.valueOf(game.getNumbersHit()));

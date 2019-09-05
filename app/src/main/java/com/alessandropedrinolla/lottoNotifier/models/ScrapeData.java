@@ -1,4 +1,4 @@
-package com.p3druz.models;
+package com.alessandropedrinolla.lottoNotifier.models;
 
 import java.util.Hashtable;
 

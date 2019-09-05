@@ -1,19 +1,14 @@
-package com.p3druz.activities;
+package com.alessandropedrinolla.lottoNotifier.activities;
 
 import android.os.Bundle;
 
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.tabs.TabLayout;
 
 import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.view.View;
-
-import com.p3druz.R;
-import com.p3druz.utils.SectionsPagerAdapter;
-import com.p3druz.utils.SharedPreferencesUtil;
+import com.alessandropedrinolla.lottoNotifier.R;
+import com.alessandropedrinolla.lottoNotifier.utils.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
     @Override

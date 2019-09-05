@@ -1,18 +1,13 @@
-package com.p3druz.models;
+package com.alessandropedrinolla.lottoNotifier.models;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import android.media.MediaPlayer;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.Set;
 
 public class Game extends Extraction{
     public final static String[] FIELDS = {"gameDate", "gameId", "gameNumbers", "numbersHit"};
@@ -20,19 +15,12 @@ public class Game extends Extraction{
     private final static String DATE_FORMAT = ("yyyyMMdd");
     public final static String DATE_LOCALE_FORMAT = ("dd/MM/yyyy");
 
-    private Date mDate;
-    private int mId;
-    private Set<Integer> mNumbers;
+    private String mDate;
     private int mNumbersHit;
 
     public Game(String date, int id, String numbers, int numbersHit) {
         super(id,numbers);
-
-        try {
-            this.mDate = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-        }
+        this.mDate = date;
         this.mNumbersHit = numbersHit;
     }
 
@@ -82,18 +70,6 @@ public class Game extends Extraction{
         return 0;
     }
 
-    public static String dateToLocaleFormat(String date) {
-        Date d;
-        try {
-            d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
-        } catch (ParseException pe) {
-            pe.printStackTrace();
-            return null;
-        }
-
-        return new SimpleDateFormat(Game.DATE_LOCALE_FORMAT, Locale.getDefault()).format(d);
-    }
-
     public static String dateToGameFormat(String date) {
         Date d;
         try {
@@ -106,47 +82,16 @@ public class Game extends Extraction{
         return new SimpleDateFormat(Game.DATE_FORMAT, Locale.getDefault()).format(d);
     }
 
-    public String getDateAsString() {
-        return new SimpleDateFormat(Game.DATE_FORMAT, Locale.getDefault()).format(mDate);
-    }
-
-    public String getDateAsStringLocale() {
-        return new SimpleDateFormat(Game.DATE_LOCALE_FORMAT, Locale.getDefault()).format(mDate);
-    }
-
-    public static void JSONArrayToList(ArrayList<Game> gameList, JSONArray ja) {
-        for (int i = 0; i < ja.length(); i++) {
-            Game game;
-            try {
-                game = new Game(ja.getJSONObject(i).getString(Game.FIELDS[0]), ja.getJSONObject(i).getInt(Game.FIELDS[1]), ja.getJSONObject(i).getString(Game.FIELDS[2]).replace("\"", ""), ja.getJSONObject(i).getInt(Game.FIELDS[3]));
-            } catch (JSONException jsonEx) {
-                jsonEx.printStackTrace();
-                return;
-            }
-
-            gameList.add(game);
+    public String getDateLocaleFormat() {
+        Date d;
+        try {
+            d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(mDate);
         }
-    }
-
-    public static JSONArray ListToJSONArray(ArrayList<Game> gameList) {
-        JSONArray jsonArray = new JSONArray();
-
-        for (Game g : gameList) {
-            JSONObject jsonObj = new JSONObject();
-
-            try {
-                jsonObj.put(FIELDS[0], g.getDateAsString());
-                jsonObj.put(FIELDS[1], g.getId());
-                jsonObj.put(FIELDS[2], g.getNumbersAsString());
-                jsonObj.put(FIELDS[3], g.getNumbersHit());
-            } catch (JSONException jsonEx) {
-                jsonEx.printStackTrace();
-                return null;
-            }
-
-            jsonArray.put(jsonObj);
+        catch (ParseException pe){
+            pe.printStackTrace();
+            return null;
         }
-        return jsonArray;
+        return new SimpleDateFormat(Game.DATE_LOCALE_FORMAT, Locale.getDefault()).format(d);
     }
 
     public void checkNumbersHit(String numbers) {
@@ -161,5 +106,9 @@ public class Game extends Extraction{
         join.addAll(mNumbers);
 
         this.mNumbersHit = 30 - join.size();
+    }
+
+    public String getDate() {
+        return mDate;
     }
 }

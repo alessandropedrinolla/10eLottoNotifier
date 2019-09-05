@@ -1,11 +1,11 @@
-package com.p3druz.models;
+package com.alessandropedrinolla.lottoNotifier.models;
 
 import java.util.HashSet;
 import java.util.Set;
 
 public class Extraction {
-    private int mId;
-    private HashSet<Integer> mNumbers;
+    protected int mId;
+    protected HashSet<Integer> mNumbers;
 
     public Extraction(int id, String numbers) {
         this.mId = id;
@@ -22,10 +22,6 @@ public class Extraction {
 
     public void setId(int id) {
         this.mId = id;
-    }
-
-    public Set<Integer> getNumbers() {
-        return mNumbers;
     }
 
     public String getNumbersAsString() {

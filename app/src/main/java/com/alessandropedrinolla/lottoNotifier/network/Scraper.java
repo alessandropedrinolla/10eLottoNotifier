@@ -1,9 +1,9 @@
-package com.p3druz.network;
+package com.alessandropedrinolla.lottoNotifier.network;
 
 import com.google.gson.Gson;
-import com.p3druz.interfaces.ScraperListenerInterface;
-import com.p3druz.models.Extraction;
-import com.p3druz.models.ScrapeData;
+import com.alessandropedrinolla.lottoNotifier.interfaces.ScraperListenerInterface;
+import com.alessandropedrinolla.lottoNotifier.models.Extraction;
+import com.alessandropedrinolla.lottoNotifier.models.ScrapeData;
 
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
@@ -11,7 +11,6 @@ import org.jsoup.nodes.Element;
 import org.jsoup.select.Elements;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.Iterator;

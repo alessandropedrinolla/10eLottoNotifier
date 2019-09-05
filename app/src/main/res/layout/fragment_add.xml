@@ -42,13 +42,19 @@
                 android:layout_height="wrap_content"
                 android:text="@string/game_id" />
 
-
             <EditText
                 android:id="@+id/game_id"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:inputType="number"
                 android:hint="@string/game_id_hint" />
         </LinearLayout>
+
+        <Button
+            android:id="@+id/ocr_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/ocr_read"/>
     </LinearLayout>
 
     <TextView

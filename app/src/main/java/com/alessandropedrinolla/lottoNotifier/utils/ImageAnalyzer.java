@@ -1,4 +1,4 @@
-package com.p3druz.utils;
+package com.alessandropedrinolla.lottoNotifier.utils;
 
 import android.graphics.Point;
 import android.graphics.Rect;
@@ -70,5 +70,4 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
             }
         }
     }
-}
 }

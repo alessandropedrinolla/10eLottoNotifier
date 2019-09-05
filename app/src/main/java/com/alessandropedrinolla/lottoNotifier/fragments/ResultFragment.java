@@ -1,4 +1,4 @@
-package com.p3druz.fragments;
+package com.alessandropedrinolla.lottoNotifier.fragments;
 
 import android.content.Context;
 import android.content.SharedPreferences;
@@ -14,27 +14,19 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
-import com.google.gson.reflect.TypeToken;
-import com.p3druz.R;
-import com.p3druz.adapters.GamesAdapter;
-import com.p3druz.interfaces.GameAdapterListenerInterface;
-import com.p3druz.interfaces.ScraperListenerInterface;
-import com.p3druz.models.Config;
-import com.p3druz.models.Game;
-import com.p3druz.models.ScrapeData;
-import com.p3druz.network.Scraper;
-import com.p3druz.utils.SharedPreferencesUtil;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
+import com.alessandropedrinolla.lottoNotifier.R;
+import com.alessandropedrinolla.lottoNotifier.adapters.GamesAdapter;
+import com.alessandropedrinolla.lottoNotifier.interfaces.GameAdapterListenerInterface;
+import com.alessandropedrinolla.lottoNotifier.interfaces.ScraperListenerInterface;
+import com.alessandropedrinolla.lottoNotifier.models.Config;
+import com.alessandropedrinolla.lottoNotifier.models.Game;
+import com.alessandropedrinolla.lottoNotifier.models.ScrapeData;
+import com.alessandropedrinolla.lottoNotifier.network.Scraper;
+import com.alessandropedrinolla.lottoNotifier.utils.SharedPreferencesUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
-import java.util.Iterator;
-import java.util.Set;
 
 public class ResultFragment extends Fragment implements ScraperListenerInterface, GameAdapterListenerInterface {
     private ListView mListView;
@@ -60,8 +52,9 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
             Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_result, container, false);
 
-        inflatedView.findViewById(R.id.refresh_button).setOnClickListener(view -> mSharedPreferencesUtil.loadGames());
-
+        inflatedView.findViewById(R.id.refresh_button).setOnClickListener(view -> {
+            refreshList();
+        });
         inflatedView.findViewById(R.id.check_button).setOnClickListener(view -> checkList());
 
         mProgressBar = inflatedView.findViewById(R.id.check_progress_bar);
@@ -69,10 +62,14 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
 
         setupListView();
 
-        mGames = mSharedPreferencesUtil.loadGames();
-        mGamesAdapter.notifyDataSetChanged();
+        refreshList();
 
         return inflatedView;
+    }
+
+    private void refreshList() {
+        mSharedPreferencesUtil.loadGames(mGames);
+        mGamesAdapter.notifyDataSetChanged();
     }
 
     private void setupListView() {
@@ -82,8 +79,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     }
 
     private void checkList() {
-        mGames = mSharedPreferencesUtil.loadGames();
-        mGamesAdapter.notifyDataSetChanged();
+        refreshList();
 
         // Game ids to check for:
         Hashtable<String, HashSet<Integer>> dateGameIdSet = new Hashtable<>();
@@ -91,12 +87,12 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
 
         for (Game g : mGames) {
             if (g.getNumbersHit() == -1) {
-                if (dateGameIdSet.containsKey(g.getDateAsString())) {
-                    dateGameIdSet.get(g.getDateAsString()).add(g.getId());
+                if (dateGameIdSet.containsKey(g.getDate())) {
+                    dateGameIdSet.get(g.getDate()).add(g.getId());
                 } else {
                     HashSet<Integer> n = new HashSet<>();
                     n.add(g.getId());
-                    dateGameIdSet.put(g.getDateAsString(), n);
+                    dateGameIdSet.put(g.getDate(), n);
                 }
             }
         }
@@ -124,7 +120,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
 
         // edit the mGames that have the resultJSON date that are not yet set
         for (Game g : mGames) {
-            if (g.getNumbersHit() == -1 && g.getDateAsString().equals(date)) {
+            if (g.getNumbersHit() == -1 && g.getDate().equals(date)) {
                 String numbers = scrapeData.getExtractions().get(g.getId()).getNumbersAsString();
                 Runnable runnable = () -> {
                     g.checkNumbersHit(numbers);
@@ -159,6 +155,4 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         mGames.remove(game);
         persistGames();
     }
-
-
 }
