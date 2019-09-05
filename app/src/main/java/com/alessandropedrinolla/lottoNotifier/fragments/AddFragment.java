@@ -18,7 +18,7 @@ import androidx.fragment.app.Fragment;
 
 import com.alessandropedrinolla.lottoNotifier.R;
 import com.alessandropedrinolla.lottoNotifier.models.Game;
-import com.alessandropedrinolla.lottoNotifier.utils.SharedPreferencesUtil;
+import com.alessandropedrinolla.lottoNotifier.utils.IOUtil;
 
 import java.io.File;
 import java.io.IOException;
@@ -42,16 +42,14 @@ public class AddFragment extends Fragment {
     private EditText mGameNumbers;
     private SimpleAdapter mAdapter;
     private ArrayList<HashMap<String, String>> mFields;
-    private SharedPreferencesUtil mSharedPreferencesUtil;
-
-    private String mCurrentPhotoPath;
+    private IOUtil mIoUtil;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         mFields = new ArrayList<>();
-        mSharedPreferencesUtil = new SharedPreferencesUtil(getActivity());
+        mIoUtil = new IOUtil(getContext());
     }
 
     @Override
@@ -92,9 +90,7 @@ public class AddFragment extends Fragment {
         return inflatedView;
     }
 
-    private void onOcrButtonClick() {
-        dispatchTakePictureIntent();
-    }
+    private void onOcrButtonClick() {}
 
     private void onRandomButtonClick() {
         HashSet<Integer> randomNums = new HashSet<>();
@@ -156,53 +152,8 @@ public class AddFragment extends Fragment {
             Game g = new Game(row.get(Game.FIELDS[0]),Integer.parseInt(row.get(Game.FIELDS[1])), row.get(Game.FIELDS[2]), Integer.parseInt(row.get(Game.FIELDS[3])));
             games.add(g);
         }
-        mSharedPreferencesUtil.persistGames(games);
+        mIoUtil.persistGames(games);
         mFields.clear();
         mAdapter.notifyDataSetChanged();
-    }
-
-    private void dispatchTakePictureIntent() {
-        Intent takePictureIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        if (takePictureIntent.resolveActivity(getActivity().getPackageManager()) != null) {
-            File photoFile = null;
-            try {
-                photoFile = createImageFile();
-            } catch (IOException ex) {
-                // Error occurred while creating the File
-            }
-            // Continue only if the File was successfully created
-            if (photoFile != null) {
-                Uri photoURI = Uri.fromFile(photoFile);
-                takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI);
-                startActivityForResult(takePictureIntent, REQUEST_TAKE_PHOTO);
-            }
-        }
-    }
-
-    @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data) {
-        // Check which request we're responding to
-        if (requestCode == REQUEST_TAKE_PHOTO) {
-            // Make sure the request was successful
-            if (resultCode == RESULT_OK) {
-
-            }
-        }
-    }
-
-    private File createImageFile() throws IOException {
-        // Create an image file name
-        String timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(new Date());
-        String imageFileName = "JPEG_" + timeStamp + "_";
-        File storageDir = getContext().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-        File image = File.createTempFile(
-                imageFileName,  /* prefix */
-                ".jpg",         /* suffix */
-                storageDir      /* directory */
-        );
-
-        // Save a file: path for use with ACTION_VIEW intents
-        mCurrentPhotoPath = image.getAbsolutePath();
-        return image;
     }
 }

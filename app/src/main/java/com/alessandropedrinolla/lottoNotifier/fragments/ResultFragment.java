@@ -22,7 +22,7 @@ import com.alessandropedrinolla.lottoNotifier.models.Config;
 import com.alessandropedrinolla.lottoNotifier.models.Game;
 import com.alessandropedrinolla.lottoNotifier.models.ScrapeData;
 import com.alessandropedrinolla.lottoNotifier.network.Scraper;
-import com.alessandropedrinolla.lottoNotifier.utils.SharedPreferencesUtil;
+import com.alessandropedrinolla.lottoNotifier.utils.IOUtil;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -35,7 +35,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     private ProgressBar mProgressBar;
     private int mProgress;
     private int mProgressMax;
-    private SharedPreferencesUtil mSharedPreferencesUtil;
+    private IOUtil mIoUtil;
     private Gson mGson;
 
     @Override
@@ -43,7 +43,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         super.onCreate(savedInstanceState);
         mGames = new ArrayList<>();
         mGson = new Gson();
-        mSharedPreferencesUtil = new SharedPreferencesUtil(getActivity());
+        mIoUtil = new IOUtil(getContext());
     }
 
     @Override
@@ -68,7 +68,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     }
 
     private void refreshList() {
-        mSharedPreferencesUtil.loadGames(mGames);
+        mIoUtil.loadGames(mGames);
         mGamesAdapter.notifyDataSetChanged();
     }
 
@@ -111,7 +111,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     @Override
     public void onCompleted(String resultJSON) {
         ScrapeData scrapeData = mGson.fromJson(resultJSON, ScrapeData.class);
-        mSharedPreferencesUtil.persistScrapeData(scrapeData);
+        mIoUtil.persistScrapeData(scrapeData);
 
         SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
