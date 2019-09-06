@@ -1,6 +1,7 @@
 package com.alessandropedrinolla.lottoNotifier.adapters;
 
 import android.content.Context;
+import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -35,11 +36,18 @@ public class GamesAdapter extends ArrayAdapter<Game> {
         TextView gameNumbersHit = convertView.findViewById(R.id.game_numbers_hit);
         Button gameDelete = convertView.findViewById(R.id.game_delete);
         // Populate the data into the template view using the data object
-        gameDateField.setText(game.getDateLocaleFormat());
+        gameDateField.setText(Game.dateToLocaleFormat(game.getDate()));
         gameIdField.setText(String.valueOf(game.getId()));
         gameNumbersField.setText(game.getNumbersAsString());
         gameNumbersHit.setText(String.valueOf(game.getNumbersHit()));
         gameDelete.setOnClickListener(view -> gali.deleteGame(game));
+
+        switch (game.getNumbersHit()){
+            case -1: convertView.setBackgroundColor(Color.TRANSPARENT); break;
+            case 1: case 2:case 3:case 4:convertView.setBackgroundColor(Color.RED);break;
+            default: convertView.setBackgroundColor(Color.GREEN);
+        }
+
         // Return the completed view to render on screen
         return convertView;
     }

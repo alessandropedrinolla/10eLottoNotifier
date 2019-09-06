@@ -81,7 +81,6 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     private void checkList() {
         refreshList();
 
-        // Game ids to check for:
         Hashtable<String, HashSet<Integer>> dateGameIdSet = new Hashtable<>();
         Scraper.sli = this;
 
@@ -97,15 +96,17 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
             }
         }
 
-        for (String date : dateGameIdSet.keySet()) {
-            Scraper.getData(date, dateGameIdSet.get(date));
-        }
+        if (dateGameIdSet.keySet().size() > 0) {
+            mProgress = 0;
+            mProgressMax = dateGameIdSet.size();
+            mProgressBar.setProgress(0);
+            mProgressBar.setVisibility(View.VISIBLE);
+            mProgressBar.setMax(mProgressMax);
 
-        mProgress = 0;
-        mProgressMax = dateGameIdSet.size();
-        mProgressBar.setProgress(0);
-        mProgressBar.setVisibility(View.VISIBLE);
-        mProgressBar.setMax(mProgressMax);
+            for (String date : dateGameIdSet.keySet()) {
+                Scraper.getData(date, dateGameIdSet.get(date));
+            }
+        }
     }
 
     @Override
@@ -113,46 +114,39 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         ScrapeData scrapeData = mGson.fromJson(resultJSON, ScrapeData.class);
         mIoUtil.persistScrapeData(scrapeData);
 
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
         String date = scrapeData.getDate();
+        Handler handler = new Handler(getContext().getMainLooper());
 
         // edit the mGames that have the resultJSON date that are not yet set
         for (Game g : mGames) {
             if (g.getNumbersHit() == -1 && g.getDate().equals(date)) {
                 String numbers = scrapeData.getExtractions().get(g.getId()).getNumbersAsString();
-                Runnable runnable = () -> {
-                    g.checkNumbersHit(numbers);
-                    mGamesAdapter.notifyDataSetChanged();
-                    if (mProgress == mProgressMax) {
-                        mProgressBar.setVisibility(View.GONE);
-                    }
-                };
-                Handler handler = new Handler(getContext().getMainLooper());
-                handler.post(runnable);
+                Runnable checkRunnable = () -> g.checkNumbersHit(numbers);
+                handler.post(checkRunnable);
+                mIoUtil.persistGame(g);
             }
         }
 
-        editor.putString(Config.USER_DATA, mGson.toJson(mGames));
-        editor.apply();
+        Runnable runnable = () -> mGamesAdapter.notifyDataSetChanged();
+        handler.post(runnable);
 
         // Progress bar advance
         mProgress++;
         mProgressBar.setProgress(mProgress);
-    }
 
-    private void persistGames() {
-        SharedPreferences sharedPreferences = getActivity().getSharedPreferences("data", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString(Config.USER_DATA, mGson.toJson(mGames));
-        editor.apply();
-        mGamesAdapter.notifyDataSetChanged();
+        if (mProgress == mProgressMax) {
+            Runnable updateDataRunnable = () -> {
+                mProgressBar.setVisibility(View.GONE);
+                mIoUtil.loadGames(mGames);
+                mGamesAdapter.notifyDataSetChanged();
+            };
+            handler.post(updateDataRunnable);
+        }
     }
 
     @Override
     public void deleteGame(Game game) {
-        mGames.remove(game);
-        persistGames();
+        mIoUtil.deleteGame(game.getUUID());
+        refreshList();
     }
 }

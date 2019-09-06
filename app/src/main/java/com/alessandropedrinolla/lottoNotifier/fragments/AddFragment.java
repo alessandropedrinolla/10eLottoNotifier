@@ -35,8 +35,6 @@ import java.util.Random;
 import static android.app.Activity.RESULT_OK;
 
 public class AddFragment extends Fragment {
-    static private final int REQUEST_TAKE_PHOTO = 1;
-
     private EditText mDateEditText;
     private EditText mGameId;
     private EditText mGameNumbers;
@@ -79,7 +77,7 @@ public class AddFragment extends Fragment {
         mGameId = inflatedView.findViewById(R.id.game_id);
         mGameNumbers = inflatedView.findViewById(R.id.game_numbers);
 
-        mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameId", "gameNumbers"}, new int[]{R.id.game_id_field, R.id.game_numbers_field});
+        mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameDate", "gameId", "gameNumbers"}, new int[]{R.id.game_date_field, R.id.game_id_field, R.id.game_numbers_field});
         ((ListView) inflatedView.findViewById(R.id.list_view)).setAdapter(mAdapter);
 
         inflatedView.findViewById(R.id.ocr_button).setOnClickListener(v -> onOcrButtonClick());
@@ -90,13 +88,15 @@ public class AddFragment extends Fragment {
         return inflatedView;
     }
 
-    private void onOcrButtonClick() {}
+    private void onOcrButtonClick() {
+    }
 
     private void onRandomButtonClick() {
+        mGameNumbers.setError(null);
         HashSet<Integer> randomNums = new HashSet<>();
         Random r = new Random();
-        while(randomNums.size()<10){
-            randomNums.add(r.nextInt(90)+1);
+        while (randomNums.size() < 10) {
+            randomNums.add(r.nextInt(90) + 1);
         }
 
         ArrayList<Integer> nums = new ArrayList<>(randomNums);
@@ -119,6 +119,14 @@ public class AddFragment extends Fragment {
             return;
         }
 
+        int gameId = Integer.parseInt(mGameId.getText().toString());
+
+        if (gameId < 1 || gameId > 288)
+        {
+            mGameId.setError("Numero estrazione fuori dal range 1-288");
+            return;
+        }
+
         switch (Game.checkNumbersString(gameNumbersStr)) {
             case 1:
                 mGameNumbers.setError("Gli elementi non sono 10");
@@ -134,8 +142,12 @@ public class AddFragment extends Fragment {
                 return;
         }
 
+        mDateEditText.setError(null);
+        mGameId.setError(null);
+        mGameNumbers.setError(null);
+
         HashMap<String, String> mRow = new HashMap<>();
-        mRow.put(Game.FIELDS[0], dateStr);
+        mRow.put(Game.FIELDS[0], Game.dateToLocaleFormat(dateStr));
         mRow.put(Game.FIELDS[1], mGameId.getText().toString());
         mRow.put(Game.FIELDS[2], gameNumbersStr);
         mRow.put(Game.FIELDS[3], "-1");
@@ -149,7 +161,7 @@ public class AddFragment extends Fragment {
         if (mFields.size() == 0) return;
         ArrayList<Game> games = new ArrayList<>();
         for (HashMap<String, String> row : mFields) {
-            Game g = new Game(row.get(Game.FIELDS[0]),Integer.parseInt(row.get(Game.FIELDS[1])), row.get(Game.FIELDS[2]), Integer.parseInt(row.get(Game.FIELDS[3])));
+            Game g = new Game(Game.dateToGameFormat(row.get(Game.FIELDS[0])), Integer.parseInt(row.get(Game.FIELDS[1])), row.get(Game.FIELDS[2]), Integer.parseInt(row.get(Game.FIELDS[3])));
             games.add(g);
         }
         mIoUtil.persistGames(games);

@@ -8,7 +8,7 @@ import androidx.viewpager.widget.ViewPager;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.alessandropedrinolla.lottoNotifier.R;
-import com.alessandropedrinolla.lottoNotifier.utils.SectionsPagerAdapter;
+import com.alessandropedrinolla.lottoNotifier.adapters.SectionsPagerAdapter;
 
 public class MainActivity extends AppCompatActivity {
     @Override

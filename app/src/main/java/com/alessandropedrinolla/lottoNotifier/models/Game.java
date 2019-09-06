@@ -8,6 +8,7 @@ import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.UUID;
 
 public class Game extends Extraction{
     public final static String[] FIELDS = {"gameDate", "gameId", "gameNumbers", "numbersHit"};
@@ -15,6 +16,7 @@ public class Game extends Extraction{
     private final static String DATE_FORMAT = ("yyyyMMdd");
     public final static String DATE_LOCALE_FORMAT = ("dd/MM/yyyy");
 
+    private String mUUID = null;
     private String mDate;
     private int mNumbersHit;
 
@@ -82,10 +84,10 @@ public class Game extends Extraction{
         return new SimpleDateFormat(Game.DATE_FORMAT, Locale.getDefault()).format(d);
     }
 
-    public String getDateLocaleFormat() {
+    public static String dateToLocaleFormat(String date) {
         Date d;
         try {
-            d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(mDate);
+            d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
         }
         catch (ParseException pe){
             pe.printStackTrace();
@@ -110,5 +112,13 @@ public class Game extends Extraction{
 
     public String getDate() {
         return mDate;
+    }
+
+    public String getUUID() {
+        return mUUID;
+    }
+
+    public void setUUID(String UUID) {
+        this.mUUID = UUID;
     }
 }

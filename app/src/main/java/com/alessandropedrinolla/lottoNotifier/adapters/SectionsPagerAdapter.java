@@ -1,4 +1,4 @@
-package com.alessandropedrinolla.lottoNotifier.utils;
+package com.alessandropedrinolla.lottoNotifier.adapters;
 
 import android.content.Context;
 
@@ -19,7 +19,7 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     private final Context mContext;
 
     public SectionsPagerAdapter(Context context, FragmentManager fm) {
-        super(fm);
+        super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         mContext = context;
     }
 
