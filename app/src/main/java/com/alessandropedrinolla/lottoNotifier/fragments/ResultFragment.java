@@ -1,7 +1,5 @@
 package com.alessandropedrinolla.lottoNotifier.fragments;
 
-import android.content.Context;
-import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -13,12 +11,12 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
+import com.alessandropedrinolla.lottoNotifier.interfaces.ResultFragmentInterface;
 import com.google.gson.Gson;
 import com.alessandropedrinolla.lottoNotifier.R;
 import com.alessandropedrinolla.lottoNotifier.adapters.GamesAdapter;
 import com.alessandropedrinolla.lottoNotifier.interfaces.GameAdapterListenerInterface;
 import com.alessandropedrinolla.lottoNotifier.interfaces.ScraperListenerInterface;
-import com.alessandropedrinolla.lottoNotifier.models.Config;
 import com.alessandropedrinolla.lottoNotifier.models.Game;
 import com.alessandropedrinolla.lottoNotifier.models.ScrapeData;
 import com.alessandropedrinolla.lottoNotifier.network.Scraper;
@@ -28,7 +26,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Hashtable;
 
-public class ResultFragment extends Fragment implements ScraperListenerInterface, GameAdapterListenerInterface {
+public class ResultFragment extends Fragment implements ScraperListenerInterface, GameAdapterListenerInterface, ResultFragmentInterface {
     private ListView mListView;
     private GamesAdapter mGamesAdapter;
     private ArrayList<Game> mGames;
@@ -52,9 +50,6 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
             Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_result, container, false);
 
-        inflatedView.findViewById(R.id.refresh_button).setOnClickListener(view -> {
-            refreshList();
-        });
         inflatedView.findViewById(R.id.check_button).setOnClickListener(view -> checkList());
 
         mProgressBar = inflatedView.findViewById(R.id.check_progress_bar);
@@ -67,7 +62,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         return inflatedView;
     }
 
-    private void refreshList() {
+    public void refreshList() {
         mIoUtil.loadGames(mGames);
         mGamesAdapter.notifyDataSetChanged();
     }

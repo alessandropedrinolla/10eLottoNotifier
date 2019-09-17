@@ -1,6 +1,7 @@
 package com.alessandropedrinolla.lottoNotifier.fragments;
 
 import android.app.DatePickerDialog;
+import android.content.Context;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
@@ -17,6 +18,7 @@ import androidx.annotation.NonNull;
 import androidx.fragment.app.Fragment;
 
 import com.alessandropedrinolla.lottoNotifier.R;
+import com.alessandropedrinolla.lottoNotifier.interfaces.ResultFragmentInterface;
 import com.alessandropedrinolla.lottoNotifier.models.Game;
 import com.alessandropedrinolla.lottoNotifier.utils.IOUtil;
 
@@ -38,16 +40,15 @@ public class AddFragment extends Fragment {
     private EditText mDateEditText;
     private EditText mGameId;
     private EditText mGameNumbers;
-    private SimpleAdapter mAdapter;
-    private ArrayList<HashMap<String, String>> mFields;
     private IOUtil mIoUtil;
+    private Context mContext;
+    public ResultFragmentInterface rfi;
 
     @Override
-    public void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-
-        mFields = new ArrayList<>();
-        mIoUtil = new IOUtil(getContext());
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mIoUtil = new IOUtil(context);
+        mContext = context;
     }
 
     @Override
@@ -70,25 +71,22 @@ public class AddFragment extends Fragment {
             mDateEditText.setText(sdf.format(myCalendar.getTime()));
         };
 
-        mDateEditText.setOnClickListener(v -> new DatePickerDialog(getContext(), date, myCalendar
+        mDateEditText.setOnClickListener(v -> new DatePickerDialog(mContext, date, myCalendar
                 .get(Calendar.YEAR), myCalendar.get(Calendar.MONTH),
                 myCalendar.get(Calendar.DAY_OF_MONTH)).show());
 
         mGameId = inflatedView.findViewById(R.id.game_id);
         mGameNumbers = inflatedView.findViewById(R.id.game_numbers);
 
-        mAdapter = new SimpleAdapter(getActivity(), mFields, R.layout.game_row, new String[]{"gameDate", "gameId", "gameNumbers"}, new int[]{R.id.game_date_field, R.id.game_id_field, R.id.game_numbers_field});
-        ((ListView) inflatedView.findViewById(R.id.list_view)).setAdapter(mAdapter);
-
         inflatedView.findViewById(R.id.ocr_button).setOnClickListener(v -> onOcrButtonClick());
         inflatedView.findViewById(R.id.random_button).setOnClickListener(v -> onRandomButtonClick());
-        inflatedView.findViewById(R.id.add_button).setOnClickListener(v -> onAddButtonClick());
         inflatedView.findViewById(R.id.save_button).setOnClickListener(v -> onSaveButtonClick());
 
         return inflatedView;
     }
 
     private void onOcrButtonClick() {
+        // todo implement this
     }
 
     private void onRandomButtonClick() {
@@ -110,7 +108,7 @@ public class AddFragment extends Fragment {
         mGameNumbers.setText(sb.toString());
     }
 
-    private void onAddButtonClick() {
+    private void onSaveButtonClick() {
         String gameNumbersStr = mGameNumbers.getText().toString();
 
         String dateStr = Game.dateToGameFormat(mDateEditText.getText().toString());
@@ -145,27 +143,11 @@ public class AddFragment extends Fragment {
         mDateEditText.setError(null);
         mGameId.setError(null);
         mGameNumbers.setError(null);
-
-        HashMap<String, String> mRow = new HashMap<>();
-        mRow.put(Game.FIELDS[0], Game.dateToLocaleFormat(dateStr));
-        mRow.put(Game.FIELDS[1], mGameId.getText().toString());
-        mRow.put(Game.FIELDS[2], gameNumbersStr);
-        mRow.put(Game.FIELDS[3], "-1");
-        mFields.add(mRow);
-        mAdapter.notifyDataSetChanged();
-
         mGameNumbers.setText("");
-    }
 
-    private void onSaveButtonClick() {
-        if (mFields.size() == 0) return;
-        ArrayList<Game> games = new ArrayList<>();
-        for (HashMap<String, String> row : mFields) {
-            Game g = new Game(Game.dateToGameFormat(row.get(Game.FIELDS[0])), Integer.parseInt(row.get(Game.FIELDS[1])), row.get(Game.FIELDS[2]), Integer.parseInt(row.get(Game.FIELDS[3])));
-            games.add(g);
-        }
-        mIoUtil.persistGames(games);
-        mFields.clear();
-        mAdapter.notifyDataSetChanged();
+        Game game = new Game(dateStr, Integer.parseInt(mGameId.getText().toString()), gameNumbersStr, -1);
+        mIoUtil.persistGame(game);
+
+        rfi.refreshList();
     }
 }

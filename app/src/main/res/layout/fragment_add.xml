@@ -27,8 +27,8 @@
                 android:id="@+id/game_date"
                 android:layout_width="fill_parent"
                 android:layout_height="wrap_content"
-                android:inputType="date"
-                android:hint="@string/game_date_hint"/>
+                android:hint="@string/game_date_hint"
+                android:inputType="date" />
         </LinearLayout>
 
         <LinearLayout
@@ -46,15 +46,15 @@
                 android:id="@+id/game_id"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:inputType="number"
-                android:hint="@string/game_id_hint" />
+                android:hint="@string/game_id_hint"
+                android:inputType="number" />
         </LinearLayout>
 
         <Button
             android:id="@+id/ocr_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="@string/ocr_read"/>
+            android:text="@string/ocr_read" />
     </LinearLayout>
 
     <TextView
@@ -83,31 +83,10 @@
             android:text="@string/random" />
     </LinearLayout>
 
-    <LinearLayout
+    <Button
+        android:id="@+id/save_button"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/add_button"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/add" />
-
-        <Button
-            android:id="@+id/save_button"
-            style="?android:attr/borderlessButtonStyle"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/save" />
-    </LinearLayout>
-
-    <ListView
-        android:id="@+id/list_view"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:text="@string/save" />
 
 </LinearLayout>

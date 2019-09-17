@@ -7,27 +7,12 @@
     android:orientation="vertical"
     tools:context=".fragments.ResultFragment">
 
-    <LinearLayout
+    <Button
+        android:id="@+id/check_button"
+        style="?android:attr/borderlessButtonStyle"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal">
-
-        <Button
-            android:id="@+id/refresh_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/refresh_list"
-            style="?android:attr/borderlessButtonStyle"/>
-
-        <Button
-            android:id="@+id/check_button"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="@string/check_list"
-            style="?android:attr/borderlessButtonStyle"/>
-    </LinearLayout>
+        android:text="@string/check_list" />
 
     <ProgressBar
         android:id="@+id/check_progress_bar"

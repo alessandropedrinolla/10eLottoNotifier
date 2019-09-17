@@ -18,19 +18,27 @@ public class SectionsPagerAdapter extends FragmentPagerAdapter {
     private static final int[] TAB_TITLES = new int[]{R.string.tab_text_1, R.string.tab_text_2};
     private final Context mContext;
 
+    private AddFragment mAddFragment;
+    private ResultFragment mResultFragment;
+
     public SectionsPagerAdapter(Context context, FragmentManager fm) {
         super(fm, BEHAVIOR_RESUME_ONLY_CURRENT_FRAGMENT);
         mContext = context;
+
+        mAddFragment = new AddFragment();
+        mResultFragment = new ResultFragment();
+        mAddFragment.rfi = mResultFragment;
     }
 
     @Override
     public Fragment getItem(int position) {
         // getItem is called to instantiate the fragment for the given page.
         // Return a ResultFragment (defined as a static inner class below).
-        if(position == 0)
-            return new AddFragment();
-        else
-            return new ResultFragment();
+        if (position == 0) {
+            return mAddFragment;
+        } else {
+            return mResultFragment;
+        }
     }
 
     @Nullable
