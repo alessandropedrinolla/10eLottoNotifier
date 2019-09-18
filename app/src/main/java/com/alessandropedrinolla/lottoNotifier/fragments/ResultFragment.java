@@ -1,5 +1,6 @@
 package com.alessandropedrinolla.lottoNotifier.fragments;
 
+import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.view.LayoutInflater;
@@ -35,19 +36,24 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
     private int mProgressMax;
     private IOUtil mIoUtil;
     private Gson mGson;
+    private Context mContext;
+
+    @Override
+    public void onAttach(@NonNull Context context) {
+        super.onAttach(context);
+        mIoUtil = new IOUtil(context);
+        mContext = context;
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mGames = new ArrayList<>();
         mGson = new Gson();
-        mIoUtil = new IOUtil(getContext());
     }
 
     @Override
-    public View onCreateView(
-            @NonNull LayoutInflater inflater, ViewGroup container,
-            Bundle savedInstanceState) {
+    public View onCreateView(@NonNull LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View inflatedView = inflater.inflate(R.layout.fragment_result, container, false);
 
         inflatedView.findViewById(R.id.check_button).setOnClickListener(view -> checkList());
@@ -110,7 +116,7 @@ public class ResultFragment extends Fragment implements ScraperListenerInterface
         mIoUtil.persistScrapeData(scrapeData);
 
         String date = scrapeData.getDate();
-        Handler handler = new Handler(getContext().getMainLooper());
+        Handler handler = new Handler(mContext.getMainLooper());
 
         // edit the mGames that have the resultJSON date that are not yet set
         for (Game g : mGames) {

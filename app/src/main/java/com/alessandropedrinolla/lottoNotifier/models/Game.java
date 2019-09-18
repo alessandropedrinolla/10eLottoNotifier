@@ -1,16 +1,14 @@
 package com.alessandropedrinolla.lottoNotifier.models;
 
-import android.media.MediaPlayer;
+import org.hamcrest.core.IsNull;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Locale;
-import java.util.UUID;
 
-public class Game extends Extraction{
+public class Game extends Extraction {
     public final static String[] FIELDS = {"gameDate", "gameId", "gameNumbers", "numbersHit"};
 
     private final static String DATE_FORMAT = ("yyyyMMdd");
@@ -20,8 +18,12 @@ public class Game extends Extraction{
     private String mDate;
     private int mNumbersHit;
 
+    public Game() {
+        super();
+    }
+
     public Game(String date, int id, String numbers, int numbersHit) {
-        super(id,numbers);
+        super(id, numbers);
         this.mDate = date;
         this.mNumbersHit = numbersHit;
     }
@@ -38,46 +40,12 @@ public class Game extends Extraction{
         return mNumbersHit;
     }
 
-    /**
-     * Error codes:
-     * 1 - there are not 10 elements
-     * 2 - an element is not a number
-     * 3 - a number is not in range 1-90
-     * 4 - numbers are not unique
-     *
-     * @param str
-     * @return errorCode
-     */
-    public static int checkNumbersString(String str) {
-        final String[] parts = str.split(" ");
-
-        if (parts.length != 10) {
-            return 1;
-        } else {
-            for (String part : parts) {
-                int num;
-                try {
-                    num = Integer.parseInt(part);
-                } catch (NumberFormatException nfe) {
-                    return 2;
-                }
-                if (num < 1 || num > 90) {
-                    return 3;
-                }
-            }
-
-            if (parts.length != new HashSet<>(Arrays.asList(parts)).size())
-                return 4;
-        }
-        return 0;
-    }
-
     public static String dateToGameFormat(String date) {
         Date d;
         try {
             d = new SimpleDateFormat(DATE_LOCALE_FORMAT, Locale.getDefault()).parse(date);
-        } catch (ParseException pe) {
-            pe.printStackTrace();
+        } catch (ParseException | NullPointerException pEx) {
+            pEx.printStackTrace();
             return null;
         }
 
@@ -88,8 +56,7 @@ public class Game extends Extraction{
         Date d;
         try {
             d = new SimpleDateFormat(DATE_FORMAT, Locale.getDefault()).parse(date);
-        }
-        catch (ParseException pe){
+        } catch (ParseException pe) {
             pe.printStackTrace();
             return null;
         }
@@ -114,11 +81,19 @@ public class Game extends Extraction{
         return mDate;
     }
 
+    public void setDate(String date) {
+        mDate = dateToGameFormat(date);
+    }
+
     public String getUUID() {
         return mUUID;
     }
 
     public void setUUID(String UUID) {
         this.mUUID = UUID;
+    }
+
+    public boolean isRecognized() {
+        return mDate != null && (mId >= 1 && mId <= 288) && mNumbers != null;
     }
 }

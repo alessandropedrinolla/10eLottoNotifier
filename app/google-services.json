@@ -1,0 +1,40 @@
+{
+  "project_info": {
+    "project_number": "1089874956557",
+    "firebase_url": "https://lottonotifier-943db.firebaseio.com",
+    "project_id": "lottonotifier-943db",
+    "storage_bucket": "lottonotifier-943db.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1089874956557:android:a6aa37aef7e9eb3b64a044",
+        "android_client_info": {
+          "package_name": "com.alessandropedrinolla.lottoNotifier"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1089874956557-23rlgbbp0maf98eblhh63hnjb1cv6op5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCRX1Vh13E4dKg9ULIQyVOVnm0bjHVoIoM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1089874956557-23rlgbbp0maf98eblhh63hnjb1cv6op5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

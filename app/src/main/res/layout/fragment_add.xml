@@ -89,4 +89,10 @@
         android:layout_height="wrap_content"
         android:text="@string/save" />
 
+    <TextureView
+        android:id="@+id/camera_preview"
+        android:layout_width="match_parent"
+        android:layout_height="fill_parent"
+        android:visibility="gone"/>
+
 </LinearLayout>
