@@ -1,12 +1,12 @@
 package com.alessandropedrinolla.lottoNotifier.utils;
 
 import android.media.Image;
+import android.util.Log;
 
 import androidx.camera.core.ImageAnalysis;
 import androidx.camera.core.ImageProxy;
 
-import com.alessandropedrinolla.lottoNotifier.fragments.AddFragment;
-import com.alessandropedrinolla.lottoNotifier.interfaces.AddFragmentInterface;
+import com.alessandropedrinolla.lottoNotifier.interfaces.OcrActivityInterface;
 import com.alessandropedrinolla.lottoNotifier.models.Game;
 import com.google.firebase.ml.vision.FirebaseVision;
 import com.google.firebase.ml.vision.common.FirebaseVisionImage;
@@ -14,16 +14,23 @@ import com.google.firebase.ml.vision.common.FirebaseVisionImageMetadata;
 import com.google.firebase.ml.vision.text.FirebaseVisionText;
 import com.google.firebase.ml.vision.text.FirebaseVisionTextRecognizer;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class ImageAnalyzer implements ImageAnalysis.Analyzer {
-    private Game mRecognizedGame;
-    private AddFragmentInterface mAddFragmentInterface;
+    private OcrActivityInterface mOcrActivityInterface;
     private HashSet<Integer> mNumbers;
+    private boolean enabled = false;
 
-    public ImageAnalyzer(AddFragment addFragment) {
-        mRecognizedGame = new Game();
-        mAddFragmentInterface = addFragment;
+    private boolean mRecognizedDate = false;
+    private boolean mRecognizedId = false;
+    private boolean mRecognizedNumbers = false;
+
+    public ImageAnalyzer(OcrActivityInterface ocrActivity) {
+        mOcrActivityInterface = ocrActivity;
         mNumbers = new HashSet<>();
     }
 
@@ -42,9 +49,13 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         }
     }
 
+    public void enable() {
+        enabled = true;
+    }
+
     @Override
     public void analyze(ImageProxy imageProxy, int degrees) {
-        if (imageProxy == null || imageProxy.getImage() == null) {
+        if (imageProxy == null || imageProxy.getImage() == null || enabled) {
             return;
         }
 
@@ -55,63 +66,98 @@ public class ImageAnalyzer implements ImageAnalysis.Analyzer {
         detector.processImage(image)
                 .addOnSuccessListener(firebaseVisionText -> {
                     for (FirebaseVisionText.TextBlock block : firebaseVisionText.getTextBlocks()) {
-                        String[] parts = block.getText().replace("\n", " ").split(" ");
+                        // todo ignore lower zone of the receipt
+                        //if(block.) is under threshold ignore
 
-                        if (mRecognizedGame.getId() == 0 && parts.length >= 3) {
-                            try {
-                                mRecognizedGame.setId(Integer.parseInt(parts[2]));
-                            } catch (NumberFormatException ignored) {
-                            }
-                        }
+                        // todo analyze numbers by block searching for 2 lines block
 
-                        if (mRecognizedGame.getDate() == null && parts.length >= 5) {
-                            // è sbagliata, converte 03-09-2019 in 00190903
-                            mRecognizedGame.setDate(parts[4].replace("-", "/"));
-                        }
+                        for (FirebaseVisionText.Line line : block.getLines()) {
+                            Log.i("Line recognized: ", line.getText());
 
-                        for (String numStr : parts) {
-                            if (mNumbers.size() < 10) {
-                                try {
-                                    int num = Integer.parseInt(numStr);
-                                    if (num >= 1 && num <= 90) {
-                                        mNumbers.add(num);
+                            String[] parts = line.getText().split(" ");
+
+                            if (parts.length == 5) {
+                                if (!mRecognizedId) {
+                                    int id = 0;
+                                    try {
+                                        id = Integer.parseInt(parts[2]);
+                                    } catch (NumberFormatException ignored) {
                                     }
-                                } catch (NumberFormatException ignored) {
+                                    if (id >= 1 && id <= 288) {
+                                        mRecognizedId = true;
+                                        mOcrActivityInterface.onIdRecognized(id);
+                                    }
+                                }
+                                if (!mRecognizedDate) {
+                                    if(parts[4].matches("\\d{2}-\\d{2}-\\d{2}")){
+                                        mRecognizedDate = true;
+                                        mOcrActivityInterface.onDateRecognized(parts[4].replace("-", "/"));
+                                    }
                                 }
                             }
-                        }
 
-                        if (mRecognizedGame.getNumbersAsString() == null && mNumbers.size() == 10) {
-                            mRecognizedGame.setNumbers(mNumbers);
-                        }
+                            /*if (!mRecognizedDate) {
+                                mRecognizedDate = true;
 
-                        if (mRecognizedGame.isRecognized()) {
-                            mAddFragmentInterface.onOcrCompleted(mRecognizedGame);
-                        }
+                                Pattern pattern = Pattern.compile("\\d{2}\\/\\d{2}\\/\\d{2}");
+                                Matcher matcher = pattern.matcher(block.getText());
 
-                        /*
-                        Float blockConfidence = block.getConfidence();
-                        List<RecognizedLanguage> blockLanguages = block.getRecognizedLanguages();
-                        Point[] blockCornerPoints = block.getCornerPoints();
-                        Rect blockFrame = block.getBoundingBox();
-                        for (FirebaseVisionText.Line line : block.getLines()) {
-                            String lineText = line.getText();
-                            Float lineConfidence = line.getConfidence();
-                            List<RecognizedLanguage> lineLanguages = line.getRecognizedLanguages();
-                            Point[] lineCornerPoints = line.getCornerPoints();
-                            Rect lineFrame = line.getBoundingBox();
-                            for (FirebaseVisionText.Element element : line.getElements()) {
-                                String elementText = element.getText();
-                                Float elementConfidence = element.getConfidence();
-                                List<RecognizedLanguage> elementLanguages = element.getRecognizedLanguages();
-                                Point[] elementCornerPoints = element.getCornerPoints();
-                                Rect elementFrame = element.getBoundingBox();
+                                while (matcher.find()) {
+                                    String match = line.getText().substring(matcher.start(), matcher.end());
+                                    int index = match.lastIndexOf("/");
+                                    String date = match.substring(0, index) + "20" + match.substring(index + 1);
+
+                                    mOcrActivityInterface.onDateRecognized(date.replace("-", "/"));
+                                }
+                            }*/
+
+                            for (String numStr : parts) {
+                                if (mNumbers.size() < 10) {
+                                    try {
+                                        int num = Integer.parseInt(numStr);
+                                        if (num >= 1 && num <= 90) {
+                                            mNumbers.add(num);
+                                        }
+                                    } catch (NumberFormatException ignored) {
+                                    }
+                                }
+                            }
+
+                            if (!mRecognizedNumbers && mNumbers.size() == 10) {
+                                mRecognizedNumbers = true;
+
+                                ArrayList<Integer> nums = new ArrayList<>(mNumbers);
+                                Collections.sort(nums);
+
+                                StringBuilder sb = new StringBuilder();
+
+                                for (Integer num : nums) {
+                                    sb.append(num);
+                                    sb.append(" ");
+                                }
+
+                                sb.deleteCharAt(sb.length() - 1);
+
+                                mOcrActivityInterface.onNumbersRecognized(sb.toString());
                             }
                         }
-                        */
                     }
                 })
                 .addOnFailureListener(e -> {
                 });
+        enabled = false;
+        mOcrActivityInterface.onAnalysisCompleted();
+    }
+
+    public void resetDate() {
+        mRecognizedDate = false;
+    }
+
+    public void resetId() {
+        mRecognizedId = false;
+    }
+
+    public void resetNumbers() {
+        mRecognizedNumbers = false;
     }
 }

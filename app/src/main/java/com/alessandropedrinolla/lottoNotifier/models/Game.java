@@ -82,6 +82,10 @@ public class Game extends Extraction {
     }
 
     public void setDate(String date) {
+        mDate = date;
+    }
+
+    public void setDateFromLocaleFormat(String date) {
         mDate = dateToGameFormat(date);
     }
 
